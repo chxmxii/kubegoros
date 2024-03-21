@@ -1,18 +1,22 @@
 <div align="center">
   
-#  KUBE-X  
+#  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35"> KUBE-X  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35">
 Simplifying Bare-Metal Production-Grade Kubernetes Deployment 🚀
 </div>
 
 ---
-
-##  What's this?
+##  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> What's this?
 
 KUBE-X is a declarative, GitOps-based tool designed to simplify the deployment of production-ready bare-metal Kubernetes clusters. It empowers users to define and manage their Kubernetes infrastructure declaratively, streamlining the deployment process. With KUBE-X, you can easily provision and manage your bare-metal Kubernetes clusters using GitOps principles.
 
 ---
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
+![Kube-X arch](arch.png)
+---
+## Tools
 
-## Features
+---
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Features
 
 - 📦 Declarative deployment of production-ready bare-metal Kubernetes clusters.
 - 🛠️ GitOps-based approach for managing Kubernetes infrastructure.
@@ -22,7 +26,7 @@ KUBE-X is a declarative, GitOps-based tool designed to simplify the deployment o
 
 ---
 
-## Prerequisites
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Prerequisites
 
 Before getting started, ensure you have:
 
@@ -31,7 +35,7 @@ Before getting started, ensure you have:
 
 ---
 
-## Installation
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Installation
 
 Follow these steps to install KUBE-X:
 
