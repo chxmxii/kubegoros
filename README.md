@@ -1,20 +1,20 @@
 <div align="center">
   
 #  KUBE-X  
-Simplifying Production-Grade Kubernetes Deployment 🚀
+Simplifying Bare-Metal Production-Grade Kubernetes Deployment 🚀
 </div>
 
 ---
 
 ##  What's this?
 
-KUBE-X is a declarative, GitOps-based tool designed to simplify the deployment of production-ready Kubernetes clusters. It empowers users to define and manage their Kubernetes infrastructure declaratively, streamlining the deployment process. With KUBE-X, you can easily provision and manage your Kubernetes clusters using GitOps principles.
+KUBE-X is a declarative, GitOps-based tool designed to simplify the deployment of production-ready bare-metal Kubernetes clusters. It empowers users to define and manage their Kubernetes infrastructure declaratively, streamlining the deployment process. With KUBE-X, you can easily provision and manage your bare-metal Kubernetes clusters using GitOps principles.
 
 ---
 
 ## Features
 
-- 📦 Declarative deployment of production-ready Kubernetes clusters.
+- 📦 Declarative deployment of production-ready bare-metal Kubernetes clusters.
 - 🛠️ GitOps-based approach for managing Kubernetes infrastructure.
 - 🔄 Streamlined provisioning and management of clusters.
 - 🚀 Simplified application deployment and configuration.
