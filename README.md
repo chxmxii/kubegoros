@@ -40,6 +40,7 @@ Follow these steps to install KUBE-X:
 3. ansible-galaxy collection install -r requirements.yml
 ```
 ---
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Project Strcuture
 
 ```sh
 📁 cluster-template
