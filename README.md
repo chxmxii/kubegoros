@@ -172,7 +172,6 @@ Contributions are welcome! To contribute to KUBE-X, follow these guidelines:
 ## License
 
 KUBE-X is licensed under the  GPLv3 License. See the [LICENSE](LICENSE.md) file for details.
-Distributed under the GPLv3 License. See license page or LICENSE.md file for more information.
 
 
 
