@@ -43,13 +43,17 @@ Follow these steps to install KUBE-X:
 
 ```sh
 📁 cluster-template
-├── 📁 kubernetes        # Kubernetes directory
-│   ├── 📁 apps          # Main applications
-│   ├── 📁 add-ons       # Add-ons applications
-└── 📁 ansible           # Ansible directory 
-    ├── 📁 playbooks     # Playbooks
-    ├── 📁 roles         # Ansible roles
-    └── 📁 tests         # Ansible tests
+├── 📁 kubernetes                # Kubernetes directory
+|   ├── 📁 main-applications     # Main applications
+|   └── 📁 add-ons               # Add-ons applications
+└── 📁 ansible                   # Ansible directory 
+|   ├── 📁 playbooks             # Ansible playbooks
+|   ├── 📁 roles                 # Ansible roles
+|   └── 📁 tests                 # Ansible tests
+└── 📁 .taskfiles                # Taskfiles directory
+    ├── 📄 clusterTasks.yml       # Tasks specific to cluster management
+    └── 📄 otherTasks.yml         # Other tasks related to the project
+
 ```
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Stack
@@ -75,64 +79,19 @@ Follow these steps to install KUBE-X:
         <td>Cloud native certificate management</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/21054566?s=200&v=4"></td>
-        <td><a href="https://cilium.io">Cilium</a></td>
+        <td><img width="32" src="x"></td>
+        <td><a href="https://www.projectcalico.org">Calico</a></td>
         <td>eBPF-based Networking, Observability and Security (CNI, LB, Network Policy, etc.)</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/314135?s=200&v=4"></td>
-        <td><a href="https://www.cloudflare.com">Cloudflare</a></td>
-        <td>DNS and Tunnel</td>
+        <td><img width="32" src="https://prometheus.io/assets/icon-prometheus-mascot.png"></td>
+        <td><a href="https://prometheus.io">Prometheus</a></td>
+        <td>Systems monitoring and alerting toolkit</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png"></td>
-        <td><a href="https://www.docker.com">Docker</a></td>
-        <td>Ephemeral PXE server and convenient tools container</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://github.com/distribution/distribution/raw/main/distribution-logo.svg"></td>
-        <td><a href="https://github.com/distribution/distribution">Docker Registry</a></td>
-        <td>Private container registry</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://github.com/kubernetes-sigs/external-dns/raw/master/docs/img/external-dns.png"></td>
-        <td><a href="https://github.com/kubernetes-sigs/external-dns">ExternalDNS</a></td>
-        <td>Synchronizes exposed Kubernetes Services and Ingresses with DNS providers</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Fedora_logo.svg/267px-Fedora_logo.svg.png"></td>
-        <td><a href="https://getfedora.org/en/server">Fedora Server</a></td>
-        <td>Base OS for Kubernetes nodes</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://upload.wikimedia.org/wikipedia/commons/b/bb/Gitea_Logo.svg"></td>
-        <td><a href="https://gitea.com">Gitea</a></td>
-        <td>Self-hosted Git service</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://grafana.com/static/img/menu/grafana2.svg"></td>
-        <td><a href="https://grafana.com">Grafana</a></td>
-        <td>Observability platform</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://helm.sh/img/helm.svg"></td>
-        <td><a href="https://helm.sh">Helm</a></td>
-        <td>The package manager for Kubernetes</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/49319725"></td>
-        <td><a href="https://k3s.io">K3s</a></td>
-        <td>Lightweight distribution of Kubernetes</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://kanidm.com/images/logo.svg"></td>
-        <td><a href="https://kanidm.com">Kanidm</a></td>
-        <td>Modern and simple identity management platform</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/13629408"></td>
-        <td><a href="https://kubernetes.io">Kubernetes</a></td>
-        <td>Container-orchestration system, the backbone of this project</td>
+        <td><img width="32" src="https://vector.dev/img/logos/vector.svg"></td>
+        <td><a href="https://vector.dev">Vector</a></td>
+        <td>High-performance observability data router</td>
     </tr>
     <tr>
         <td><img width="32" src="https://github.com/grafana/loki/blob/main/docs/sources/logo.png?raw=true"></td>
@@ -140,31 +99,52 @@ Follow these steps to install KUBE-X:
         <td>Log aggregation system</td>
     </tr>
     <tr>
+        <td><img width="32" src="https://www.vaultproject.io/img/brand/vault_logo_32.png"></td>
+        <td><a href="https://www.vaultproject.io">Vault</a></td>
+        <td>Secret management and data protection</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://yverno.dev/img/yverno-logo.svg"></td>
+        <td><a href="https://yverno.dev">Kyverno</a></td>
+        <td>Declarative policy engine for Kubernetes configuration</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://kanidm.com/images/logo.svg"></td>
+        <td><a href="https://kanidm.com">Kanidm</a></td>
+        <td>Modern and simple identity management platform</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://istio.io/latest/img/istio-whitelogo-bluebackground-unframed.svg"></td>
+        <td><a href="https://istio.io">Istio</a></td>
+        <td>Service mesh for connecting, securing, and managing microservices</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://kubearmor.io/images/logo_black.png"></td>
+        <td><a href="https://kubearmor.io">KubeArmor</a></td>
+        <td>Kubernetes Native Runtime Security</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://metallb.org/images/logo.svg"></td>
+        <td><a href="https://metallb.org">MetalLB</a></td>
+        <td>Bare metal load-balancer for Kubernetes</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://nginx.org/nginx.png"></td>
+        <td><a href="https://www.nginx.com">NGINX Ingress Controller</a></td>
+        <td>Kubernetes Ingress Controller</td>
+    </tr>
+    <tr>
         <td><img width="32" src="https://longhorn.io/img/logos/longhorn-icon-white.png"></td>
         <td><a href="https://longhorn.io">Longhorn</a></td>
         <td>Cloud native distributed block storage for Kubernetes</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/1412239?s=200&v=4"></td>
-        <td><a href="https://www.nginx.com">NGINX</a></td>
-        <td>Kubernetes Ingress Controller</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://ntfy.sh/_next/static/media/logo.077f6a13.svg"></td>
-        <td><a href="https://ntfy.sh">ntfy</a></td>
-        <td>Notification service to send notifications to your phone or desktop</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://avatars.githubusercontent.com/u/3380462"></td>
-        <td><a href="https://prometheus.io">Prometheus</a></td>
-        <td>Systems monitoring and alerting toolkit</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://docs.renovatebot.com/assets/images/logo.png"></td>
-        <td><a href="https://www.whitesourcesoftware.com/free-developer-tools/renovate">Renovate</a></td>
-        <td>Automatically update dependencies</td>
+        <td><img width="32" src="https://velero.io/img/velero-logo.png"></td>
+        <td><a href="https://velero.io">Velero</a></td>
+        <td>Backup and disaster recovery solution for Kubernetes clusters</td>
     </tr>
 </table>
+
 
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Usage
@@ -190,6 +170,8 @@ Contributions are welcome! To contribute to KUBE-X, follow these guidelines:
 
 ## License
 
-KUBE-X is licensed under the [License Name]. See the [LICENSE](LICENSE) file for details.
+KUBE-X is licensed under the  GPLv3 License. See the [LICENSE](LICENSE.md) file for details.
+Distributed under the GPLv3 License. See license page or LICENSE.md file for more information.
+
 
 
