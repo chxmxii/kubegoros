@@ -42,7 +42,7 @@ Follow these steps to install KUBE-X:
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Project Strcuture
 
-```sh
+```md
 📁 kubex
 ├── 📁 kubernetes                # Kubernetes directory
 |   ├── 📁 main-applications     # Main applications
@@ -80,17 +80,17 @@ Follow these steps to install KUBE-X:
         <td>Cloud native certificate management</td>
     </tr>
     <tr>
-        <td><img width="32" src="x"></td>
+        <td><img width="32" src="https://rancher.com/docs/img/rancher/calico-logo.png"></td>
         <td><a href="https://www.projectcalico.org">Calico</a></td>
         <td>eBPF-based Networking, Observability and Security (CNI, LB, Network Policy, etc.)</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://prometheus.io/assets/icon-prometheus-mascot.png"></td>
+        <td><img width="32" src="https://luktom.net/wordpress/wp-content/uploads/2019/05/prometheus.png"></td>
         <td><a href="https://prometheus.io">Prometheus</a></td>
         <td>Systems monitoring and alerting toolkit</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://vector.dev/img/logos/vector.svg"></td>
+        <td><img width="32" src="https://vector.dev/favicon.ico"></td>
         <td><a href="https://vector.dev">Vector</a></td>
         <td>High-performance observability data router</td>
     </tr>
@@ -100,32 +100,27 @@ Follow these steps to install KUBE-X:
         <td>Log aggregation system</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://www.vaultproject.io/img/brand/vault_logo_32.png"></td>
+        <td><img width="32" src="https://devopsideas.com/wp-content/uploads/2018/03/vault-logo.png"></td>
         <td><a href="https://www.vaultproject.io">Vault</a></td>
         <td>Secret management and data protection</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://yverno.dev/img/yverno-logo.svg"></td>
-        <td><a href="https://yverno.dev">Kyverno</a></td>
-        <td>Declarative policy engine for Kubernetes configuration</td>
+        <td><img width="32" src="https://guku.io/assets/images/kyverno-logo-b0f24d5373a14591e46fe8c75b539698.png"></td>
+        <td><a href="https://kyverno.io">Kyverno</a></td>
+        <td>Kubernetes Native Policy Management</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://kanidm.com/images/logo.svg"></td>
-        <td><a href="https://kanidm.com">Kanidm</a></td>
-        <td>Modern and simple identity management platform</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://istio.io/latest/img/istio-whitelogo-bluebackground-unframed.svg"></td>
+        <td><img width="32" src="https://creazilla-store.fra1.digitaloceanspaces.com/icons/3508845/istio-bluelogo-nobackground-unframed-icon-md.png"></td>
         <td><a href="https://istio.io">Istio</a></td>
         <td>Service mesh for connecting, securing, and managing microservices</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://kubearmor.io/images/logo_black.png"></td>
+        <td><img width="32" src="https://pbs.twimg.com/profile_images/1452865156359196674/Z6IT7Fbr.png"></td>
         <td><a href="https://kubearmor.io">KubeArmor</a></td>
         <td>Kubernetes Native Runtime Security</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://metallb.org/images/logo.svg"></td>
+        <td><img width="32" src="https://v0-2-1--metallb.netlify.app/images/logo.png"></td>
         <td><a href="https://metallb.org">MetalLB</a></td>
         <td>Bare metal load-balancer for Kubernetes</td>
     </tr>
@@ -140,7 +135,7 @@ Follow these steps to install KUBE-X:
         <td>Cloud native distributed block storage for Kubernetes</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://velero.io/img/velero-logo.png"></td>
+        <td><img width="32" src="https://www.definit.co.uk/images/logos/velero.png"></td>
         <td><a href="https://velero.io">Velero</a></td>
         <td>Backup and disaster recovery solution for Kubernetes clusters</td>
     </tr>
@@ -150,10 +145,11 @@ Follow these steps to install KUBE-X:
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Usage
 
-Once installed and configured, use KUBE-X to deploy and manage your Kubernetes cluster:
+Once installed and configured, use taskfile to deploy and manage your Kubernetes cluster:
 
 ```bash
 $ cd kubex
+$ task --list-all
 $ task cluster:init
 ```
 ---
