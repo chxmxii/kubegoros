@@ -1,0 +1,18 @@
+#task for haproxy
+---
+
+- name: Install HAProxy package 
+  yum:
+    name: haproxy
+    state: present
+
+- name: Deploy HAProxy Configuration 
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Start and Enable HAProxy Service
+  systemd:
+    name: haproxy
+    state: started
+    enabled: yes

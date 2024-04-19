@@ -1,0 +1,24 @@
+---
+# tasks file for pre-setup
+
+- name: Ensure resource requirements
+  include_tasks: 00-res_assert.yml
+
+- name: Ensure swap is turned off
+  include_tasks: 01-swapoff.yml
+
+- name: Ensure NTP service is restarted
+  service:
+    name: chronyd
+    state: restarted
+
+- name: Ensure Kubernetes repo is added
+  include_tasks: 02-setup_repos.yml
+
+- name: Ensure the needed packages are installed
+  include_tasks: 03-install_packages.yml
+
+- name: Ensure system and network configurations are applied. 
+  include_tasks: 04-sys_net_settings.yml
+  
+- meta: flush_handlers

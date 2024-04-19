@@ -1,0 +1,24 @@
+---
+- name: Check if Helm binary already exists
+  stat:
+    path: "{{ helm_binary_path }}"
+  register: check_helm
+
+- name: Get Helm version
+  shell: |
+    "{{ helm_binary_path }} version"
+  changed_when: false
+  failed_when: false
+  register: existing_helm_version
+
+- name: Download Helm
+  unarchive:
+    remote_src: true
+    src: "{{ helm_url }}"
+    dest: "{{ helm_path }}"
+    owner: root
+    group: root
+    mode: 0755
+  when: >
+    not check_helm.stat.exists
+    or helm_version not in existing_helm_version.stdout

@@ -1,0 +1,55 @@
+---
+- name: Ensure the hostname is changed on all node.
+  hostname:
+    name: "{{ node_hostname }}"
+
+- name: Ensure /etc/hosts is updated.
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    dest: /etc/hosts
+    mode: '0644'
+
+- name: Ensure zram-generator-defaults is absent.
+  package:
+    name: zram-generator-defaults
+    state: absent
+
+- name: Ensure Firewalld is disabled
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  when: firewall_isdisabled
+
+- name: Ensure SELinux is in permissive mode
+  selinux:
+    policy: targeted
+    state: permissive
+
+- name: Ensure SELinux is disabled
+  selinux:
+    state: disabled
+  when: selinux_isdisabled
+
+- name: Ensure kernel module is loaded
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: present 
+  loop: ['overlay','br_netfilter','ceph','ip_vs','ip_vs_rr', 'rbd'] 
+
+# See: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
+- name: Ensure iptables can see bridged traffic
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop: ['net.ipv4.ip_forward','net.bridge.bridge-nf-call-iptables' ,'net.bridge.bridge-nf-call-ip6tables']  
+  notify: 
+    - Reboot Required

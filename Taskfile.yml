@@ -1,0 +1,22 @@
+version: '3'
+
+includes:
+  env: ./.taskfiles/env.yml
+  cluster: ./.taskfiles/ansible.yml
+
+tasks:
+  help:
+    silent: true
+    cmds:
+      - |
+        echo ""
+        echo "Welcome to CORALIO-CLUSTER-TEMPLATE"
+        echo -e "\n\e[1mUsage:\e[0m"
+        echo ""
+        echo -e "  \e[37mtask\e[0m \e[94menv\e[0m\e[37m:\e[0m\e[94mprepare\e[0m     -> \e[94mPrepare the environment for the project\e[0m"
+        echo -e "  \e[37mtask\e[0m \e[94menv\e[0m\e[37m:\e[0m\e[94minstall\e[0m     -> \e[94mInstall project dependencies\e[0m"
+        echo -e "  \e[37mtask\e[0m \e[94mcluster\e[0m\e[37m:\e[0m\e[94minit\e[0m    -> \e[94mProvision the Kubernetes cluster\e[0m"
+        echo -e "  \e[37mtask\e[0m \e[94mcluster\e[0m\e[37m:\e[0m\e[94mreset\e[0m   -> \e[94mReset the Kubernetes cluster\e[0m"
+        echo -e "  \e[37mtask\e[0m \e[94mcluster\e[0m\e[37m:\e[0m\e[94mupgrade\e[0m -> \e[94mUpgrade the Kubernetes cluster\e[0m"
+        echo ""
+

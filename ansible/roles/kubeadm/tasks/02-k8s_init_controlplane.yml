@@ -1,0 +1,46 @@
+---
+- name: Check if Kubernetes has already been initialized
+  stat:
+    path: "{{ kubelet_config_root_dir }}/admin.conf"
+  register: kube_init_check
+
+- name: Copy initial Kubernetes configuration template
+  template:
+    src: "kubeadm-init-config.yml.j2"
+    dest: "{{ kubelet_config_root_dir }}/kubeadm-config.yml"
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Initialize Kubernetes control plane with kubeadm init
+  shell: |
+    kubeadm init --config={{ kubelet_config_root_dir }}/kubeadm-config.yml
+  register: kubeadm_init_output
+  when: not kube_init_check.stat.exists
+
+- name: Debug initialization logs
+  debug:
+    var: kubeadm_init_output.stdout
+  when: not kube_init_check.stat.exists
+
+- name: Ensure .kube directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Create symlink for kubectl admin.conf in .kube directory
+  file:
+    src: "{{ kubelet_config_root_dir }}/admin.conf"
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    state: link
+    mode: '0644'
+
+- name: Install and configure Calico CNI
+  shell: |
+    kubectl apply -f {{ kube_cni_calico }}
+  register: calico_result
+  until: calico_result is not failed
+  changed_when: "'created' in calico_result.stdout"
+  retries: 12
+  delay: 5

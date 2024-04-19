@@ -1,0 +1,29 @@
+---
+- name: Ensure the system packages are updated.
+  package:
+    name: '*'
+    state: latest
+
+- name: Ensure procps is installed.
+  package:
+    name: "{{ procps_package }}"
+    state: present
+
+- name: Ensure required packages are installed.
+  package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ required_packages }}"
+
+- name: Ensure openssl is installed.
+  package:
+    name: openssl
+    state: present
+
+- name: Ensure kubernetes packages are installed.
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    disable_excludes: kubernetes
+  loop: "{{ k8s_packages }}"

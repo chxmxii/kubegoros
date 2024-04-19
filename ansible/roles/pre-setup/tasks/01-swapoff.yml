@@ -1,0 +1,21 @@
+---
+- name: Check if the /etc/fstab file exists.
+  stat:
+    path: "/etc/fstab"
+  register: fstab_file
+
+- name: Ensure the swap is removed from /etc/fstab
+  mount:
+    name: swap 
+    fstype: swap
+    state: absent
+  when: fstab_file.stat.exists 
+
+- name: Ensure the swap.target service is masked
+  systemd:
+    name: swap.target
+    masked: yes
+  when: fstab_file.stat.exists
+
+- name: Ensure swap is disable
+  command: which swapoff -a

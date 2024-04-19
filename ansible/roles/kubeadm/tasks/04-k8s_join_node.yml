@@ -1,0 +1,32 @@
+---
+- name: Check if node is already joined
+  stat:
+    path: "/var/lib/kubelet/kubeadm-flags.env"
+  register: kube_node_joined
+
+- name: Copy Kubernetes join configuration template
+  template:
+    src: "kubeadm-join-config.yml.j2"
+    dest: "{{ kubelet_config_root_dir }}/kubeadm-join-config.yml"
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Join node to Kubernetes cluster
+  shell: |
+    kubeadm join \ 
+    --config={{ kubelet_config_root_dir }}/kubeadm-join-config.yml
+  changed_when: false
+  when: not kube_node_joined.stat.exists
+
+- name: check nodes until ready
+  shell: |
+    kubectl get node {{ kube_cluster_node_name }} \
+    --kubeconfig=/etc/kubernetes/admin.conf -ojson | jq -rM '.status.conditions[].status'
+  register: cmd_result
+  changed_when: false
+  delegate_to: "{{ kube_cluster_init_main_node_name }}"
+  delay: 5
+  retries: 50
+  until: cmd_result.stdout.split() | last == 'True' 
+  ignore_errors: yes 

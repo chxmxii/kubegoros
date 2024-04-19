@@ -1,0 +1,25 @@
+---
+- name: Ensure firewalld is started and enabled at boot
+  systemd:
+    name: firewalld
+    state: started
+    enabled: true
+#when: ansible_facts.services['firewalld.service'].state != 'running'
+
+- name: Permit necessary ports for controlplanes
+  firewalld:
+    port: "{{ item }}/tcp"
+    state: enabled
+    permanent: true
+  loop: "{{ controlplane_firewall_ports }}"
+  when: inventory_hostname in groups['kube_controlplanes'] 
+  notify: Reload firewalld
+
+- name: Permit necessary ports for worker nodes
+  firewalld:
+    port: "{{ item }}/tcp" 
+    state: enabled
+    permanent: true
+  loop: "{{ workernode_firewall_ports }}" 
+  when: inventory_hostname in groups['kube_workernodes']
+  notify: Reload firewalld

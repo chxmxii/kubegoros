@@ -1,0 +1,37 @@
+# defaults file for gitops
+os_arch: '{{ ansible_architecture }}'
+system_arch: '{{ ''amd64'' if ansible_architecture == ''x86_64'' else ''arm64'' }}'
+os_platform: linux
+# @vars for Helm
+helm_binary_path: /usr/bin/helm
+helm_path: /usr/bin
+helm_url: https://get.helm.sh/helm-v{{ helm_version }}-{{ os_platform }}-{{ system_arch }}.tar.gz
+#See https://github.com/helm/helm/releases
+helm_version: 3.14.3
+# @vars for Kustomize
+k7e_binary_path: /usr/bin
+k7e_version: 5.4.1
+k7e_core_download: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ k7e_version }}/kustomize_v{{ k7e_version }}_linux_{{ system_arch }}.tar.gz
+## @ars for Kustomize Plugins 
+ksops_download_url: https://github.com/viaduct-ai/kustomize-sops/releases/download/v{{ k7e_plugins.ksops.version }}/ksops_{{ k7e_plugins.ksops.version }}_{{ os_platform }}_{{ os_arch }}.tar.gz
+khelm_download_url: https://github.com/mgoltzsche/khelm/releases/download/v{{ k7e_plugins.khelm.version }}/khelm-linux-{{ system_arch }}
+k7e_plugins:
+    ksops:
+        enabled: true
+        version: 4.3.1
+    khelm:
+        enabled: true
+        version: 2.3.3
+# @vars for argocd
+argocd_namespace: argocd
+argocd_version: 2.10.6
+argocd_manifests: https://raw.githubusercontent.com/argoproj/argo-cd/v{{ argocd_version }}/manifests/install.yaml
+argocd_binary_path: /usr/bin
+argocd_cli_url: https://github.com/argoproj/argo-cd/releases/download/v{{ argocd_version }}/argocd-{{ os_platform }}-{{ system_arch }}
+argocd_new_password: argocdadmin0#
+# @vars for gitlab repository
+git_repo:
+    gitlab_url: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    gitlab_password: chamsi51333560.
+    gitlab_username: chxmxii
+    repoistory_type: git
