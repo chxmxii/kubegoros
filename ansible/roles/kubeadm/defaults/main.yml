@@ -1,0 +1,58 @@
+# defaults file for kubeadm
+---
+
+kube_version_kubeadm: "1.29.1"
+
+kubelet_config_root_dir: "/etc/kubernetes"
+
+kube_apiserver_advertise_address: ""
+
+kube_cluster_extlb: "{{ haproxy_ip }}"  
+
+kube_cni_calico: "https://projectcalico.docs.tigera.io/manifests/calico.yaml"
+
+kube_cluster_node_name: "{{ inventory_hostname }}"
+
+kube_cluster_initial_controlplane: false
+#-------------------------
+# kubeadm j2 template
+#-------------------------
+kube_cfg_init_conf:
+  nodeRegistration:
+    name: "{{ kube_cluster_node_name }}"
+  localAPIEndpoint:
+    advertiseAddress: "{{ kube_apiserver_advertise_address | default(ansible_default_ipv4['address']) }}"
+    bindPort: 6443
+
+kube_cfg_cluster_conf:
+  networking:
+    podSubnet: 10.244.0.0/16
+    serviceSubnet: 10.96.0.0/16
+    dnsDomain: cluster.local
+  kubernetesVersion: "{{ kube_version_kubeadm }}"
+  controlPlaneEndpoint: "{{ kube_cluster_extlb | default(hostvars[inventory_hostname]['ansible_facts']['default_ipv4']['address']) }}:6443"
+  controllerManager:
+    extraArgs:
+      bind-address: "0.0.0.0"
+  scheduler:
+    extraArgs:
+      bind-address: "0.0.0.0"
+
+kube_cfg_join_conf:
+  nodeRegistration:
+    name: "{{ kube_cluster_node_name }}"
+  discovery:
+    bootstrapToken:
+      token: "{{ kube_cluster_join_token }}"  
+      apiServerEndpoint: "{{ kube_cluster_api_server_ip }}:{{ kube_cfg_init_conf.localAPIEndpoint.bindPort }}"
+      caCertHashes:
+        - "sha256:{{ kube_cluster_root_ca_hash }}"
+      unsafeSkipCAVerification: false
+
+kube_cfg_kubelet_conf:
+  cgroupDriver: "systemd"
+  failSwapOn: false
+
+# https://kubernetes.io/docs/reference/config-api/kube-proxy-config.v1alpha1/
+kube_cfg_kubeproxy_conf:
+  metricBindAddress: "0.0.0.0:10249"

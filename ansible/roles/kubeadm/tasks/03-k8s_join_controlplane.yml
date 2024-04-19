@@ -1,0 +1,35 @@
+---
+- name: Create control plane configuration and certs diretory
+  file:
+    path: "{{ kubelet_config_root_dir }}/pki/etcd"
+    state: directory
+    owner: root
+    group: root
+    mode: 0640
+
+- name: Write control plane configuration and certs
+  copy: 
+    dest: "{{ item.item.item }}" 
+    content: "{{ item.content | b64decode }}"
+    owner: root
+    group: root
+    mode: 0600
+  loop: "{{ kube_cluster_control_plane_files.results }}"
+  loop_control:
+    label: "{{ item.item.item }}"
+
+- name: Join control-plane node
+  include_tasks: 04-k8s_join_node.yml
+
+- name: Ensure .kube directory exists
+  file:
+    path: "{{ ansible_env.HOME }}/.kube"
+    state: directory
+    mode: "0755"
+
+- name: Create Symbolic link for admin.conf
+  file:
+    src: "{{ kubelet_config_root_dir }}/admin.conf"
+    dest: ~/.kube/config
+    state: link 
+    mode: '0644'

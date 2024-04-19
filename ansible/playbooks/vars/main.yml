@@ -1,0 +1,21 @@
+---
+controlplane_firewall_ports:
+  - 10248
+  - 10249
+  - 9099
+  - 2379
+  - 2380
+  - 10250
+  - 6443
+  - 10256
+  - 10257
+  - 10259
+
+workernode_firewall_ports:
+  - 10259
+  - 10250
+  - '30000-32767' 
+
+firewall_services:
+  - http
+  - https

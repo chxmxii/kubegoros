@@ -1,0 +1,6 @@
+---
+#collections required to run the playbooks.
+collections:
+  - name: ansible.posix
+  - name: community.general
+  - name: kubernetes.core

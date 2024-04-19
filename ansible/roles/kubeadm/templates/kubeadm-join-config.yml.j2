@@ -1,0 +1,6 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+{% if kube_cfg_join_conf | length > 0 %}
+{{ kube_cfg_join_conf | to_nice_yaml }}
+{% endif %}

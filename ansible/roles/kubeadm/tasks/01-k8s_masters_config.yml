@@ -1,0 +1,14 @@
+---
+#tasks for 01-k8s_masters_config.yml
+
+- name: Intialize cluster on main control-plane
+  include_tasks: 02-k8s_init_controlplane.yml 
+  when: kube_cluster_initial_controlplane | bool
+
+- name: Prepare environment for the cluster
+  include_tasks: 00-setup_facts.yml
+  when: kube_cluster_initial_controlplane | bool
+
+- name: Join other controlplane
+  include_tasks: 03-k8s_join_controlplane.yml 
+  when: not kube_cluster_initial_controlplane | bool

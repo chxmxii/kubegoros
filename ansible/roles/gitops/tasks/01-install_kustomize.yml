@@ -1,0 +1,28 @@
+---
+- name: Download Kustomize 
+  unarchive:
+    remote_src: true
+    src: "{{ k7e_core_download }}"
+    dest: "{{ k7e_binary_path }}"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Download Ksops plugin
+  unarchive:
+    remote_src: true
+    src: "{{ ksops_download_url }}"
+    dest: "{{ k7e_binary_path }}"
+    owner: root
+    group: root
+    mode: 0755
+  when: k7e_plugins.ksops.enabled
+
+- name: Download Khelm plugin 
+  get_url:
+    url: "{{ khelm_download_url }}"
+    dest: "{{ k7e_binary_path }}/khelm"
+    owner: root
+    group: root
+    mode: 0755
+  when: k7e_plugins.khelm.enabled

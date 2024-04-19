@@ -1,0 +1,6 @@
+---
+- name: Test containerd role
+  hosts: k8s.workernode01
+  become: true 
+  roles:
+    - { role: ../roles/containerd }

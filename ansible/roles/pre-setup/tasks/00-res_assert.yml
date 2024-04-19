@@ -1,0 +1,10 @@
+---
+- name: Ensure minimum CPU requirement
+  assert:
+    that: ansible_processor_vcpus >= 2
+    fail_msg: "Insufficient CPU resources. A minimum of 2 CPUs is required to proceed. Current CPU count: {{ ansible_processor_vcpus }}."
+
+- name: Ensure minimum RAM requirement
+  assert:
+    that: ansible_memtotal_mb >= 2048
+    fail_msg: "Insufficient memory. A minimum of 2048MB RAM is required to proceed. Current memory: {{ ansible_memtotal_mb }}MB."

@@ -1,0 +1,82 @@
+---
+- name: Gather join token
+  block:
+    - name: Get kubeadm to join other nodes
+      shell: |
+        kubeadm token create --ttl 24h
+      register: kube_join_cmd_result
+      changed_when: False
+
+    - name: Set kubeadm token variable
+      set_fact:
+        kube_cluster_join_token: "{{ kube_join_cmd_result.stdout }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ ansible_play_hosts }}"
+
+
+- name: Gather root CA certificate hash
+  block:
+    - name: Get root CA certificate hash
+      ansible.builtin.shell: |
+        set -o pipefail \
+        && openssl x509 -pubkey -in {{ kubelet_config_root_dir }}/pki/ca.crt \
+          | openssl rsa -pubin -outform der 2>/dev/null \
+          | openssl dgst -sha256 -hex \
+          | sed 's/^.* //'
+      args:
+        executable: /usr/bin/bash
+      register: get_root_ca_command_result
+      changed_when: False
+
+    - name: Set root CA certificate hash variable for other nodes
+      ansible.builtin.set_fact:
+        kube_cluster_root_ca_hash: "{{ get_root_ca_command_result.stdout }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ ansible_play_hosts }}"
+
+- name: Set ip address of initial API server for other nodes
+  ansible.builtin.set_fact:
+    kube_cluster_api_server_ip: "{{ hostvars[inventory_hostname]['ansible_facts']['default_ipv4']['address'] }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ ansible_play_hosts }}"
+
+- name: Set hostname of initial master for other nodes
+  ansible.builtin.set_fact:
+    kube_cluster_init_main_node_name: "{{ inventory_hostname }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ ansible_play_hosts }}"
+
+- name: Collect certificate files from initial control plane node
+  block:
+    # Once we use external etcd cluster the files inside /etc/kubernetes/pki/etcd won't exist.
+    - name: Check if certificate files exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: certificate_files
+      loop:
+        - /etc/kubernetes/pki/ca.key
+        - /etc/kubernetes/pki/sa.key
+        - /etc/kubernetes/pki/sa.pub
+        - /etc/kubernetes/pki/front-proxy-ca.crt
+        - /etc/kubernetes/pki/front-proxy-ca.key
+        - /etc/kubernetes/pki/etcd/ca.crt
+        - /etc/kubernetes/pki/etcd/ca.key
+        - /etc/kubernetes/admin.conf
+
+    - name: Gather control plane configurations and certs
+      ansible.builtin.slurp:
+        src: "{{ item.item }}"
+      register: control_plane_files
+      when: item.stat.exists | bool
+      loop: "{{ certificate_files.results }}"
+
+    - name: Set control_plane_files for other nodes
+      ansible.builtin.set_fact:
+        kube_cluster_control_plane_files: "{{ control_plane_files }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ ansible_play_hosts }}"

@@ -1,0 +1,18 @@
+---
+- name: Test containerd role
+  hosts: test #k8s.workernode01
+  become: true 
+  gather_facts: true
+  collections:
+    - ansible.posix
+    - community.general
+    - ansible.builtin
+  roles:
+   - { role: ../roles/containerd}
+   - { role: ../roles/pre-setup}
+   - { role: ../roles/kubeadm }
+  #tasks:
+  # - name: Import role and apply only on node01
+  #   import_role:
+  #     name: ../roles/pre-setup
+  #   when: inventory_hostname == 'k8s.workernode01'

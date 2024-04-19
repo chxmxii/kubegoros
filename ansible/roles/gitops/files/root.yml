@@ -1,0 +1,27 @@
+---
+- apiVersion: argorproj.io/v1alpha1
+  kind: Application
+  metadata:
+    name: root-app
+    namespace: "{{ argocd_namespace }}"
+  spec:
+    destination:
+      namespace: "{{ argocd_namespace }}"
+      server: https://kubernetes.defaults.svc
+    project: default
+    source:
+      git:
+        credentials:
+          name: gitlab-token
+      path: kubernetes/apps
+      server: https://gitlab.com/chxmxii/cluster-template-coralio.git
+      targetRevision: HEAD
+      directory:
+        recursive: true
+        include: "*.app.yaml"
+    syncPolicy:
+      automated:
+        selfHeal: true
+        prune: true
+      syncOptions:
+        - CreateNamespace=true

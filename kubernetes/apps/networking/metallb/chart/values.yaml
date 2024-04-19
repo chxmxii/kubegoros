@@ -1,0 +1,5 @@
+addresses:
+  - name: block-a
+    block: 10.254.100.50-10.254.100.65
+  - name: block-b
+    block: 10.254.100.70-10.254.100.85

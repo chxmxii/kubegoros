@@ -1,0 +1,16 @@
+---
+# tasks file for gitops
+#- name: Install Helm
+# include_tasks: 00-install_helm.yml
+
+#- name: Install Kustomize
+  # include_tasks: 01-install_kustomize.yml
+
+#- name: Install ArgoCD
+#  include_tasks: 02-install_argocd.yml
+
+    #- name: Configure ArgoCD
+- include_tasks: 03-configure_argocd.yml
+
+  #- name: Bootstrap ArgoCD
+  #include_tasks: 04-bootstrap_argocd.yml

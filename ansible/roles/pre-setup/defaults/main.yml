@@ -1,0 +1,35 @@
+---
+# defaults file for pre-setup
+
+#03-install_packages.yml
+kubernetes_version: 1.29
+
+kubernetes_yum_base_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/"
+kubernetes_yum_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/repodata/repomd.xml.key"
+kubernetes_yum_gpg_check: true
+kubernetes_yum_repo_gpg_check: true
+
+required_packages:
+  - jq
+  - ca-certificates
+  - wget
+  - nmap-ncat
+  - iptables
+  - curl
+  - net-tools
+  - iputils
+  - bind-utils
+  - tcpdump
+  - htop
+k8s_packages:
+  - kubeadm
+  - kubelet
+  - kubectl
+
+procps_package: procps-ng
+
+#04-mod_settings.yml
+firewall_isdisabled: true
+selinux_isdisabled: true
+
+node_hostname: "{{ inventory_hostname }}"
