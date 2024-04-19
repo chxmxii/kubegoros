@@ -1,22 +1,22 @@
 <div align="center">
   
-#  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35"> KUBE-X  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35">
-Simplifying Bare-Metal Production-Grade Kubernetes Deployment 🚀
+#  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35"> KUBEGOROS  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35">
+Simplifying the deployment of Bare-Metal Kubernetes cluster in a GitOps fashion 🚀
 </div>
 
 ---
 ##  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> What's this?
 
-KUBE-X is a declarative, GitOps-based tool designed to simplify the deployment of production-ready bare-metal Kubernetes clusters. It empowers users to define and manage their Kubernetes infrastructure declaratively, streamlining the deployment process. With KUBE-X, you can easily provision and manage your bare-metal Kubernetes clusters using GitOps principles.
+A GitOps-based tool leveraging ArgoCD, Ansible and kubeadm for streamlined deployment of production-grade bare-metal Kubernetes clusters. Enables easy and declarative management for streamlined infrastructure oversight.
 
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
-![Kube-X arch](arch.png)
+![arch](arch.png)
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Features
 
 - 📦 Declarative deployment of production-ready bare-metal Kubernetes clusters.
-- 🛠️ GitOps-based approach for managing Kubernetes infrastructure.
+- 🛠️ GitOps-based approach for managing Kubernetes apps.
 - 🔄 Streamlined provisioning and management of clusters.
 - 🚀 Simplified application deployment and configuration.
 - 🔧 Customizable configurations for specific use cases.
@@ -27,33 +27,34 @@ KUBE-X is a declarative, GitOps-based tool designed to simplify the deployment o
 
 Before getting started, ensure you have:
 ```
-- Ansible > 2.9.15
+- Ansible >= 2.14
+- Python  >= 3.6
+
 ```
 ---
 
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Installation
 
-Follow these steps to install KUBE-X:
+Follow these steps to install:
 ```
-1. git clone github.com/chxmxii/kubex.git
-2. pip3 install -r requirements.txt
-3. ansible-galaxy collection install -r requirements.yml
+1. git clone https://gitlab.com/chxmxii/cluster-template-coralio
+2. task env:install 
 ```
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Project Strcuture
 
 ```md
-📁 kubex
+📁 coralio-cluster-template
 ├── 📁 kubernetes                # Kubernetes directory
-|   ├── 📁 main-applications     # Main applications
-|   └── 📁 add-ons               # Add-ons applications
+|   ├── 📁 argocd                # ArgoCD Root app
+|   └── 📁 apps                  # Cluster applications
 └── 📁 ansible                   # Ansible directory 
 |   ├── 📁 playbooks             # Ansible playbooks
 |   ├── 📁 roles                 # Ansible roles
 |   └── 📁 tests                 # Ansible tests
 └── 📁 .taskfiles                # Taskfiles directory
-    ├── 📄 clusterTasks.yml       # Tasks specific to cluster management
-    └── 📄 otherTasks.yml         # Other tasks related to the project
+    ├── 📄 ansible.yml           # Tasks specific to cluster management with ansible
+    └── 📄 env.yml        # Tasks related to environement setup
 
 ```
 ---
@@ -105,7 +106,7 @@ Follow these steps to install KUBE-X:
         <td>Secret management and data protection</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://guku.io/assets/images/kyverno-logo-b0f24d5373a14591e46fe8c75b539698.png"></td>
+        <td><img width="32" src="https://res.cloudinary.com/startup-grind/image/upload/c_fill,dpr_2.0,f_auto,g_center,h_1080,q_100,w_1080/v1/gcs/platform-data-cncf/events/35923880-823a-11e9-9089-0c9c102f9e6f.png"></td>
         <td><a href="https://kyverno.io">Kyverno</a></td>
         <td>Kubernetes Native Policy Management</td>
     </tr>
@@ -130,7 +131,7 @@ Follow these steps to install KUBE-X:
         <td>Kubernetes Ingress Controller</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://longhorn.io/img/logos/longhorn-icon-white.png"></td>
+        <td><img width="32" src="https://vadosware.io/images/longhorn-logo.png"></td>
         <td><a href="https://longhorn.io">Longhorn</a></td>
         <td>Cloud native distributed block storage for Kubernetes</td>
     </tr>
@@ -148,10 +149,15 @@ Follow these steps to install KUBE-X:
 Once installed and configured, use taskfile to deploy and manage your Kubernetes cluster:
 
 ```bash
-$ cd kubex
-$ task --list-all
-$ task cluster:init
+$ task help #to view a list of availabe commands
+$ task cluster:init #to init the cluster
 ```
+---
+
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Roadmap
+
+- Coming soon
+
 ---
 ## Contributing
 
