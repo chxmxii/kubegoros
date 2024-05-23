@@ -1,0 +1,11 @@
+cert-manager:
+  installCRDs: true
+
+  ingressShim:
+    defaultIssuerName: letsencrypt-stagging
+    defaultIssuerKind: ClusterIssuer
+
+  # prometheus:
+  #   enabled: true
+  #   servicemonitor:
+  #     enabled: true
