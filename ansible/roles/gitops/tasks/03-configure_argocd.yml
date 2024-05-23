@@ -1,3 +1,5 @@
+#Task for argocd configuration
+---
 - name: Patch ArgoCD service to NodePort
   k8s:
     state: present
@@ -39,69 +41,64 @@
     namespace: "{{ argocd_namespace }}"
   register: argocd_init_secret
 
-- name: Get Current admin password hash if exist
-  k8s_info:
-    api_version: v1
-    kind: Secret
-    name: argocd-secret
-    namespace: "{{ argocd_namespace }}"
-  register: argocd_secret
-  ignore_errors: true
-
 - name: Set initial admin password fact
   set_fact:
     argocd_initial_password: "{{ argocd_init_secret.resources[0].data.password | b64decode }}"
 
-#The following tasks will help ansible to decide whether to changed the argocd admin password or not.
-- name: Set Current admin password hash fact
-  set_fact:
-    argocd_current_password_hash: "{{ argocd_secret.resources[0].data['admin.password'] | b64decode }}"
+- name: Change ArgoCD  admin password
+  block:
+    - name: Login to ArgoCD
+      uri:
+        url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/session"
+        method: POST
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+        body:
+          username: admin
+          password: "{{ argocd_initial_password }}"
+        return_content: yes
+        status_code: 200
+        validate_certs: no
+      register: login_response
+      changed_when: false
 
-- name: Hash the new password argocd password with bcrypt
-  set_fact:
-    argocd_new_password_hash: "{{ argocd_new_password | password_hash('bcrypt', ident='2a') }}"
-- debug:
-    var: argocd_current_password_hash
-- debug:
-    var: argocd_new_password_hash
+    - name: Extract and set argocd token fact from login response
+      set_fact:
+        argocd_token: "{{ login_response.json.token }}"
 
-- name: Compare the current and the new admin password Hash
-  set_fact: 
-    password_change_needed: "{{ argocd_new_password_hash == argocd_current_password_hash  }}" 
+    - name: Change initial admin password
+      uri:
+        url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/account/password"
+        method: PUT
+        body_format: json
+        headers:
+          Authorization: "Bearer {{ argocd_token }}"
+        body:
+          currentPassword: "{{ argocd_initial_password }}"
+          newPassword: "{{ argocd_new_password }}"
+        status_code: 200
+        validate_certs: no
+      changed_when: false
+    
+  rescue: 
 
-- debug:
-    var: password_change_needed
+    - name: Debug fail message
+      debug:
+        msg: "Failed to change ArgoCD initial admin password. Attempting to login with the new password..."
 
-- name: Login to ArgoCD 
-  uri:
-    url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/session"
-    method: POST
-    body_format: json
-    headers:
-      Content-Type: "application/json"
-    body:
-      username: admin
-      password: "{{ argocd_initial_password }}"
-    return_content: yes
-    status_code: 200
-    validate_certs: no
-  register: login_response
-  changed_when: false
-
-- name: Extract and set argocd token fact from login response
-  set_fact:
-    argocd_token: "{{ login_response.json.token }}"
-
-- name: Change initial admin password
-  uri:
-    url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/account/password"
-    method: PUT
-    body_format: json
-    headers:
-      Authorization: "Bearer {{ argocd_token }}"
-    body:
-      currentPassword: "{{ argocd_initial_password }}"
-      newPassword: "{{ argocd_new_password }}"
-    status_code: 200
-    validate_certs: no
-  changed_when: false
+    - name: Login to ArgoCD
+      uri:
+        url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/session"
+        method: POST
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+        body:
+          username: admin
+          password: "{{ argocd_new_password }}"
+        return_content: yes
+        status_code: 200
+        validate_certs: no
+      register: login_response
+      changed_when: false

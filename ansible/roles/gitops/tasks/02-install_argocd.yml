@@ -7,8 +7,7 @@
 - debug:
     var: cluster_namespaces.stdout_lines
 
-- name: INSTALL ARGOCD | 
-  run_once: true
+- name: Install ArgoCD 
   block:
     - name: Create ArgoCD Namespace
       kubernetes.core.k8s:
@@ -31,7 +30,7 @@
         state: present
         src: /tmp/argocd.yml
   always:
-    - name: clean installation
+    - name: Clean Installation
       file:
         path: /tmp/argocd.yml
         state: absent 
@@ -44,4 +43,3 @@
     owner: root
     group: root
     mode: 0755
-

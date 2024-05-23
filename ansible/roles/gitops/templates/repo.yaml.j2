@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: private-repo
+  namespace: {{ argocd_namespace }}
+  annotations:
+    managed-by: argocd.argorpoj.io
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: {{ git_repo.repoistory_type }}
+  url: {{ git_repo.gitlab_url }}
+  password: {{ git_repo.gitlab_password }}
+  username: {{ git_repo.gitlab_username }}

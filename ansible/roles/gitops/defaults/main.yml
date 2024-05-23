@@ -1,4 +1,4 @@
-# defaults file for gitops
+#defaults file for gitops
 os_arch: '{{ ansible_architecture }}'
 system_arch: '{{ ''amd64'' if ansible_architecture == ''x86_64'' else ''arm64'' }}'
 os_platform: linux
@@ -29,7 +29,8 @@ argocd_manifests: https://raw.githubusercontent.com/argoproj/argo-cd/v{{ argocd_
 argocd_binary_path: /usr/bin
 argocd_cli_url: https://github.com/argoproj/argo-cd/releases/download/v{{ argocd_version }}/argocd-{{ os_platform }}-{{ system_arch }}
 argocd_new_password: argocdadmin0#
-# @vars for gitlab repository
+# @vars for argocd gitlab repository
+kube_server: https://kubernetes.default.svc
 git_repo:
     gitlab_url: https://gitlab.com/chxmxii/cluster-template-coralio.git
     gitlab_password: chamsi51333560.
