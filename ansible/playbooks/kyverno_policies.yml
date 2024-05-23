@@ -1,0 +1,37 @@
+---
+- name: Configure Kyverno Policies on Kubernetes Control Planes
+  hosts: controlplane01
+  become: true
+  vars:
+    kyverno_policies_enabled: true
+  tasks:
+    - name: Setup Kyverno Policies Directory
+      block:
+        - name: Determine Kyverno Policies State
+          set_fact:
+            policy_state: "{% if kyverno_policies_enabled == true %}apply{% else %}delete{% endif %}"
+        
+        - name: Initialize Policies Directory
+          file:
+            path: /tmp/policies
+            state: directory
+            
+        - name: Copy Kyverno Policy Manifests
+          copy:
+            src: "{{ item.src }}"
+            dest: "{{ item.dest }}"
+          loop:
+            - { src: 'files/policies//deny-privilege-escalation.yaml', dest: '/tmp/policies//deny-privilege-escalation.yaml' }
+            - { src: 'files/policies/disallow-privileged-containers.yaml', dest: '/tmp/policies/disallow-privileged-containers.yaml' }
+            - { src: 'files/policies/require-resource-requests.yaml', dest: '/tmp/policies/require-resource-requests.yaml' }
+
+        - name: "{% if kyverno_policies_enabled == true %} Deploy Kyverno Policies {% else %}Delete Kyverno Policies{% endif %}"
+          command: >
+            kubectl {{ policy_state }} -f /tmp/policies
+          ignore_errors: true
+
+      always:
+        - name: Cleanup Policies Directory
+          file:
+            path: /tmp/policies
+            state: absent
