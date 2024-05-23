@@ -4,7 +4,6 @@
     name: firewalld
     state: started
     enabled: true
-#when: ansible_facts.services['firewalld.service'].state != 'running'
 
 - name: Permit necessary ports for controlplanes
   firewalld:
