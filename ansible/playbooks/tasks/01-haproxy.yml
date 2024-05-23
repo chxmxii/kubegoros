@@ -1,18 +1,50 @@
 #task for haproxy
 ---
+- name: set fact for halb01 address
+  set_fact:
+    halb01_address : "{{ hostvars['halb01']['ansible_default_ipv4']['address'] }}"
 
-- name: Install HAProxy package 
+- name: set fact for halb02 address
+  set_fact:
+    halb02_address : "{{ hostvars['halb02']['ansible_default_ipv4']['address'] }}"
+
+- name: Ensure non local IP binding is enabled
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: "1"
+    state: present
+    reload: true
+
+- name: Install HAProxy and keepalived packages
   yum:
-    name: haproxy
+    name: haproxy, keepalived, psmisc
     state: present
 
-- name: Deploy HAProxy Configuration 
+- name: Deploy HAProxy Configuration
   template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
 
-- name: Start and Enable HAProxy Service
+- name: Deploy Keepalived Configuration
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Deploy Keepalived Configuration
+  template:
+    src: heartbeat.sh.j2
+    dest: /etc/keepalived/heartbeat.sh
+    mode: "0750"
+
+- name: Start and Enable HAProxy and Keepalived Services
   systemd:
-    name: haproxy
+    name: "{{ item }}"
     state: started
     enabled: yes
+  loop:
+    - haproxy
+    - keepalived
+
+- name: Ensure Keepalived metrics exported is installed and enabled.
+  include_tasks: 02-install_kame.yml
+  when: kame_isEnabled
