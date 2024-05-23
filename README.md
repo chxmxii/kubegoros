@@ -1,6 +1,6 @@
 <div align="center">
   
-#  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35"> KUBEGOROS  <img src="https://media.giphy.com/media/3o7aD2d7hy9ktXNDP2/giphy.gif" width="35">
+#  CORAL-IO CLUSTER TEMPLATE
 Simplifying the deployment of Bare-Metal Kubernetes cluster in a GitOps fashion 🚀
 </div>
 
@@ -46,15 +46,20 @@ Follow these steps to install:
 ```md
 📁 coralio-cluster-template
 ├── 📁 kubernetes                # Kubernetes directory
-|   ├── 📁 argocd                # ArgoCD Root app
-|   └── 📁 apps                  # Cluster applications
-└── 📁 ansible                   # Ansible directory 
-|   ├── 📁 playbooks             # Ansible playbooks
-|   ├── 📁 roles                 # Ansible roles
-|   └── 📁 tests                 # Ansible tests
-└── 📁 .taskfiles                # Taskfiles directory
+|   ├── 📁 adds-on               # Adds-on applications
+|   └── 📁 apps                  # kubernetes applications
+└── 📁 ansible                   # Ansible root directory.
+|   ├── 📁 playbooks             # Ansible playbooks.
+|   └── 📁 roles                 # Ansible roles.
+|       ├── 📁 pre-setup         # Responsible for getting the VMs ready for the flight.
+|       ├── 📁 containerd        # Installs and configure containerd.
+|       ├── 📁 kubeadm           # Install and configure kubernetes.
+|       └── 📁 gitops            # Install, Configure and Bootstrap argoCD.
+├── 📁 tests                     # Ansible tests.
+└── 📁 .taskfiles                # Taskfiles root directory.
     ├── 📄 ansible.yml           # Tasks specific to cluster management with ansible
-    └── 📄 env.yml        # Tasks related to environement setup
+    ├── 📄 kyverno.yml           # Tasks specific to enable or disable kyverno policies.
+    └── 📄 env.yml               # Tasks related to environement setup.
 
 ```
 ---
@@ -149,31 +154,24 @@ Follow these steps to install:
 Once installed and configured, use taskfile to deploy and manage your Kubernetes cluster:
 
 ```bash
-$ task help #to view a list of availabe commands
-$ task cluster:init #to init the cluster
+Usage:
+
+  task help            -> Display this message
+  task env:prepare     -> Prepare the environment for the project
+  task env:install     -> Install project dependencies
+  task cluster:init    -> Provision the Kubernetes cluster
+  task cluster:reset   -> Reset the Kubernetes cluster
+  task cluster:upgrade -> Upgrade the Kubernetes cluster
+  task cluster:backup  -> Take cluster Backup
+  task policy:enable   -> Enable kyverno Policies
+  task policy:disable  -> Disable kyverno Policies
 ```
 ---
 
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Roadmap
 
-- Coming soon
-
----
-## Contributing
-
-Contributions are welcome! To contribute to KUBE-X, follow these guidelines:
-
-1. Fork the repository.
-2. Create a new branch.
-3. Make your changes.
-4. Test your changes thoroughly.
-5. Submit a pull request.
-
----
-
-## License
-
-KUBE-X is licensed under the  GPLv3 License. See the [LICENSE](LICENSE.md) file for details.
-
-
++ Add support for Talos / CoreOS.
++ Cloudfalre integration.
++ Create smoke tests.
+...
 
