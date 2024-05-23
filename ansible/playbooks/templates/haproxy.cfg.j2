@@ -93,7 +93,7 @@ backend app
 # Frontend for Kubernetes Control Plane
 #--------------------------------------------------------------
 frontend k8s-controlplane
-  bind {{ ansible_default_ipv4['address'] }}:6443
+  bind *:6443
   mode tcp
   option tcplog
   default_backend k8s-controlplane-backend
@@ -102,11 +102,13 @@ frontend k8s-controlplane
 # Backend for Kubernetes Control Plane Load Balancing
 #--------------------------------------------------------------
 backend k8s-controlplane-backend
+  option httpchk GET /healthz
+  http-check expect status 200
   mode tcp
+  option ssl-hello-chk
+  #option tcp-check
   balance roundrobin
-  option tcp-check
 
 {% for host in groups['kube_controlplanes'] %}
-  server {{ hostvars[host]['inventory_hostname'] }} {{ hostvars[host]['ansible_default_ipv4'].address }}:6443 check
+  server {{ hostvars[host]['inventory_hostname'] }} {{ hostvars[host]['ansible_default_ipv4'].address }}:6443 check fall 3 rise 2
 {% endfor %}
-
