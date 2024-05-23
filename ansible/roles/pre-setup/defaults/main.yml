@@ -9,6 +9,11 @@ kubernetes_yum_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_versio
 kubernetes_yum_gpg_check: true
 kubernetes_yum_repo_gpg_check: true
 
+python_libs:
+  - jsonpatch
+  - kubernetes
+  - pyyaml
+
 required_packages:
   - jq
   - ca-certificates
@@ -21,6 +26,8 @@ required_packages:
   - bind-utils
   - tcpdump
   - htop
+  - libselinux-python3
+  - iscsi-initiator-utils
 k8s_packages:
   - kubeadm
   - kubelet
