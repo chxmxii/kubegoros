@@ -34,7 +34,7 @@
     src: "{{ kubelet_config_root_dir }}/admin.conf"
     dest: "{{ ansible_env.HOME }}/.kube/config"
     state: link
-    mode: '0644'
+    mode: '0640'
 
 - name: Install and configure Calico CNI
   shell: |

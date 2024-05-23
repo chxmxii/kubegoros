@@ -7,7 +7,7 @@ kubelet_config_root_dir: "/etc/kubernetes"
 
 kube_apiserver_advertise_address: ""
 
-kube_cluster_extlb: "{{ haproxy_ip }}"  
+kube_cluster_extlb: "{{ vip_address }}"  
 
 kube_cni_calico: "https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 
@@ -55,4 +55,4 @@ kube_cfg_kubelet_conf:
 
 # https://kubernetes.io/docs/reference/config-api/kube-proxy-config.v1alpha1/
 kube_cfg_kubeproxy_conf:
-  metricBindAddress: "0.0.0.0:10249"
+  metricsBindAddress: "0.0.0.0:10249"
