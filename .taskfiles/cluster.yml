@@ -1,0 +1,26 @@
+version: '3'
+
+vars:
+  ANSIBLE_INVENTORY: "inventory.yml"
+  
+tasks:
+  init:
+    silent: true
+    cmds:
+      - echo "Initializing the Kubernetes cluster..." && ansible-playbook ansible/playbooks/cluster.yml
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
+  
+  reset:
+    silent: true
+    cmds:
+      - echo "Resetting the Kubernetes cluster..." && ansible-playbook ansible/playbooks/reset.yml
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
+        
+  upgrade:
+    silent: true
+    cmds:
+      - echo "Upgrading the Kubernetes cluster..." && ansible-playbook ansible/playbooks/upgrade.yml
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
