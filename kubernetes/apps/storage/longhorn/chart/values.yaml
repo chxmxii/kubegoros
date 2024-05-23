@@ -1,0 +1,26 @@
+longhorn:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    host: longhorn.k8s.coralio.co
+    tls: true
+    tlsSecret: longhorn-storage-co-tls
+    annotations:
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: letsencrypt
+      # nginx.ingress.kubernetes.io/auth-url: 
+      # nginx.ingress.kubernetes.io/auth-signin:
+  persistence:
+    removeSnapshotsDuringFilesystemTrim: enabled
+
+  metrics:
+    serviceMonitor:
+      enabled: false
+
+  defaultSettings:
+    defaultLonghornStaticStorageClass: longhorn
+    # backupTarget: s3://wasabi
+    removeSnapshotsDuringFilesystemTrim: enabled
+  
+  preUpgradeChecker:
+    jobEnabled: false
