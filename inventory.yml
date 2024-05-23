@@ -1,0 +1,27 @@
+all:
+  children:
+    kube_cluster:
+      hosts:
+        controlplane01:
+        controlplane02:
+        controlplane03:
+        workernode01:
+        workernode02:
+        workernode03:
+
+    kube_controlplanes:
+      hosts:
+        controlplane01:
+        controlplane02:
+        controlplane03:
+      
+    kube_workernodes:
+      hosts:
+        workernode01:
+        workernode02:
+        workernode03:
+    
+    haproxylb:
+      hosts:
+        halb01:
+        halb02:
