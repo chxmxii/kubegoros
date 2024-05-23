@@ -1,0 +1,11 @@
+external-secrets:
+  installCRDs: true
+
+vaultStore:
+  vaultToken: aHZzLlRjNEx4eUNiRTgzM2VaQU8xbHpVU3JPUA==
+  tokenSecretRef:
+    key: token
+    name: vault-token
+  path: secret
+  server: http://10.254.100.107:8200
+  version: v1
