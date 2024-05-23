@@ -1,37 +1,28 @@
+# tasks for argocd aoa bootstrapping
 ---
-- name: Ensure ArgoCD bootstrap directory exists
-  file:
-    path: /var/argocd/bootstrap
-    state: directory
+- name: Initialize ArgoCD Bootstrap Process
+  block:
+    - name: Prepare ArgoCD Bootstrap Directory
+      file:
+        path: /tmp/argocd/bootstrap
+        state: directory
 
-- name: Create Gitlab-Repo secret for ArgoCD
-  k8s:
-    state: present
-    definition:
-      api_version: v1
-      kind: Secret
-      metadata:
-        name: gitlab-repo
-        namespace: "{{ argocd_namespace }}"
-        annotations:
-          managed-by: argocd.argoproj.io
-        labels:
-          argocd.argoproj.io/secret-type: repository
-      type: Opaque
-      data: 
-        password: "{{ git_repo.gitlab_password | b64encode}}"
-        username: "{{ git_repo.gitlab_username | b64encode}}"
-        type: "{{ git_repo.repoistory_type | b64encode}}"
-        url: "{{ git_repo.gitlab_url | b64encode}}"
+    - name: Deploy ArgoCD Application Manifests
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: 'root.yaml.j2', dest: '/tmp/argocd/bootstrap/root.yaml' }
+        - { src: 'projects.yaml.j2', dest: '/tmp/argocd/bootstrap/projects.yaml' }
+        - { src: 'repo.yaml.j2', dest: '/tmp/argocd/bootstrap/repo.yaml' }
 
+    - name: Apply ArgoCD Bootstrap Configuration
+      command: >
+        kubectl apply -f /tmp/argocd/bootstrap/
+      ignore_errors: true
 
-- name: Copy root application manifest to control plane
-  template:
-    src: root.yml.j2
-    dest: /var/argocd/bootstrap/root.yml
-
-- name: Deploy root application using ArgoCD
-  k8s:
-    namespace: "{{ argocd_namespace }}"
-    state: present
-    src: /var/argocd/bootstrap/root.yml
+  always:
+    - name: Clean Bootstrap Directory
+      file:
+        path: /tmp/argocd
+        state: absent
