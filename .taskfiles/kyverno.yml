@@ -1,0 +1,19 @@
+version: '3'
+
+vars:
+  ANSIBLE_INVENTORY: "inventory.yml"
+  
+tasks:
+  enable:
+    silent: true
+    cmds:
+      - echo "Enabling kyverno policies..." && ansible-playbook ansible/playbooks/kyverno_policies.yml
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
+
+  disable:
+    silent: true
+    cmds:
+      - echo "Disabling kyverno policies..." && ansible-playbook ansible/playbooks/kyverno_policies.yml --extra-vars "kyverno_policies_enabled=false"
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
