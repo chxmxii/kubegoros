@@ -9,7 +9,7 @@ spec:
   destination:
     namespace: metallb
     server: https://kubernetes.default.svc
-  project: apps
+  project: networking
   source:
     path: kubernetes/apps/networking/metallb/chart
     repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
