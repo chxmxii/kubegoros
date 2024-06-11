@@ -1,13 +1,13 @@
 <div align="center">
   
-#  CORAL-IO CLUSTER TEMPLATE
-Simplifying the deployment of Bare-Metal Kubernetes cluster in a GitOps fashion 🚀
+#  KUBEGOROS
+Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion 🚀
 </div>
 
 ---
 ##  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> What's this?
 
-A GitOps-based tool leveraging ArgoCD, Ansible and kubeadm for streamlined deployment of production-grade bare-metal Kubernetes clusters. Enables easy and declarative management for streamlined infrastructure oversight.
+A GitOps-based tool leveraging ArgoCD, Ansible and kubeadm for streamlined deployment of bare-metal Kubernetes clusters. Enables easy and declarative management for streamlined infrastructure oversight.
 
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
@@ -37,14 +37,14 @@ Before getting started, ensure you have:
 
 Follow these steps to install:
 ```
-1. git clone https://gitlab.com/chxmxii/cluster-template-coralio
+1. git clone https://gitlab.com/chxmxii/kubegoros.git
 2. task env:install 
 ```
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Project Strcuture
 
 ```md
-📁 coralio-cluster-template
+📁 kubegoros
 ├── 📁 kubernetes                # Kubernetes directory
 |   ├── 📁 adds-on               # Adds-on applications
 |   └── 📁 apps                  # kubernetes applications
@@ -170,8 +170,7 @@ Usage:
 
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Roadmap
 
-+ Add support for Talos / CoreOS.
++ Add support for Talos.
 + Cloudfalre integration.
 + Create smoke tests.
 ...
-
