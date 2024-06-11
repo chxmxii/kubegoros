@@ -15,6 +15,11 @@
     state: present
   loop: "{{ required_packages }}"
 
+- name: Ensure required python libs are installed
+  pip:
+    name: "{{ item }}"
+  loop: "{{ python_libs }}"
+
 - name: Ensure openssl is installed.
   package:
     name: openssl
