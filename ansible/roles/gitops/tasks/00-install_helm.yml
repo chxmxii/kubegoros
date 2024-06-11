@@ -11,14 +11,21 @@
   failed_when: false
   register: existing_helm_version
 
-- name: Download Helm
-  unarchive:
-    remote_src: true
-    src: "{{ helm_url }}"
-    dest: "{{ helm_path }}"
-    owner: root
-    group: root
-    mode: 0755
+- name: Ensure Helm is downloaded and extracted
+  block:
+    - name: Download and extract Helm
+      unarchive:
+        remote_src: true
+        src: "{{ helm_url }}"
+        dest: /tmp/
+        owner: root
+        group: root
+        mode: 0755
+    - name: Copy Helm binary to destination
+      copy:
+        remote_src: true
+        src: "/tmp/{{ os_platform }}-{{ system_arch }}/helm"
+        dest: "{{ helm_path}}"
   when: >
     not check_helm.stat.exists
     or helm_version not in existing_helm_version.stdout
