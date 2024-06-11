@@ -1,7 +1,7 @@
 ---
-- name: Gather join token
+- name: Get kubeadm to join other nodes
   block:
-    - name: Get kubeadm to join other nodes
+    - name: Gather join token
       shell: |
         kubeadm token create --ttl 24h
       register: kube_join_cmd_result
@@ -13,7 +13,6 @@
       delegate_to: "{{ item }}"
       delegate_facts: true
       loop: "{{ ansible_play_hosts }}"
-
 
 - name: Gather root CA certificate hash
   block:
