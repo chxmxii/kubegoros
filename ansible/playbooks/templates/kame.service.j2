@@ -1,0 +1,18 @@
+[Unit]
+Description=Prometheus Keepalived Exporter
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/kame
+SyslogIdentifier=kame
+Restart=always
+RestartSec=1
+StartLimitInterval=0
+ProtectSystem=full
+WorkingDirectory=/opt
+
+[Install]
+WantedBy=multi-user.target
