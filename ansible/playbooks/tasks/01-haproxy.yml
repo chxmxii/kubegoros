@@ -1,18 +1,147 @@
 #task for haproxy
 ---
+- name: Ensure the hostname is changed.
+  hostname:
+    name: "{{ inventory_hostname }}"
 
-- name: Install HAProxy package 
+- name: Ensure /etc/hosts is updated.
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: set fact for halb01 address
+  set_fact:
+    halb01_address : "{{ hostvars['halb01']['ansible_default_ipv4']['address'] }}"
+
+- name: set fact for halb02 address
+  set_fact:
+    halb02_address : "{{ hostvars['halb02']['ansible_default_ipv4']['address'] }}"
+
+- name: Ensure non local IP binding is enabled
+  sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: "1"
+    state: present
+    reload: true
+
+#to_do: add condition to ignore lua installation if exists.
+- name: Get lua version
+  command: lua -v
+  register: lua_version
+
+- name: Install HAProxy and keepalived packages
   yum:
-    name: haproxy
+    name: haproxy, keepalived, psmisc
     state: present
 
-- name: Deploy HAProxy Configuration 
+- name: Install HAProxy with Prometheus Exporter
+  when: haproxy_metrics_isenabled 
+  block:
+    - name: Install Required Dependencies
+      package:
+        name: 
+          - git
+          - gcc
+          - make
+          - openssl-devel
+          - readline-devel
+          - pcre-devel
+          - zlib-devel
+          - lua
+        state: present
+
+    - name: Download and Extract Lua Source Code
+      unarchive:
+        remote_src: true
+        src: "http://www.lua.org/ftp/lua-{{ lua_version }}.tar.gz"
+        dest: /tmp/
+
+    - name: Compile Lua Source
+      community.general.make:
+        chdir: "/tmp/lua-{{ lua_version }}"
+        target: linux
+
+    - name: Install Lua Binary
+      community.general.make:
+        chdir: "/tmp/lua-{{ lua_version }}"
+        target: install
+
+    - name: Clone HAProxy Repository from GitHub
+      git: 
+        repo: https://github.com/haproxy/haproxy.git
+        dest: /tmp/haproxy
+        clone: yes
+        update: yes
+    
+    - name: Compile HAProxy with Required Modules and Prometheus Exporter
+      community.general.make:
+        chdir: /tmp/haproxy
+        params:
+          TARGET: linux-glibc
+          USE_LUA: 1 
+          USE_OPENSSL: 1 
+          USE_PCRE: 1 
+          USE_ZLIB: 1 
+          USE_SYSTEMD: 1 
+          USE_PROMEX: 1
+      
+    - name: Install HAProxy Binaries
+      community.general.make:
+        chdir: /tmp/haproxy
+        target: install-bin
+    
+    - name: Stop HAProxy Service if Running
+      service:
+        name: haproxy
+        state: stopped
+
+    - name: Deploy HAProxy Binary to System Path
+      copy:
+        remote_src: true
+        src: /usr/local/sbin/haproxy
+        dest: /usr/sbin/haproxy
+        mode: '0755'
+  rescue:
+    - name: Log Installation Failure
+      debug:
+        msg: "Installation of HAProxy with Prometheus Exporter failed. Proceeding with cleanup."
+  always:
+    - name: Clean Up Temporary Directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/haproxy
+        - /tmp/lua-{{ lua_version }}
+
+- name: Deploy HAProxy Configuration
   template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
 
-- name: Start and Enable HAProxy Service
+- name: Deploy Keepalived Configuration
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Deploy Keepalived Configuration
+  template:
+    src: heartbeat.sh.j2
+    dest: /etc/keepalived/heartbeat.sh
+    mode: "0750"
+
+- name: Start and Enable HAProxy and Keepalived Services
   systemd:
-    name: haproxy
+    name: "{{ item }}"
     state: started
     enabled: yes
+  loop:
+    - haproxy
+    - keepalived
+
+- name: Ensure Keepalived metrics exported is installed and enabled.
+  include_tasks: 02-install_kame.yml
+  when: keepalived_metrics_isenabled
