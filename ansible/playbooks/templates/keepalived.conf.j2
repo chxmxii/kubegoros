@@ -1,0 +1,26 @@
+vrrp_script apiserver_health_check {
+  script "/etc/keepalived/heartbeat.sh"
+  interval 3
+  timeout 10
+  fall 5
+  rise 2
+  weight -2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 1
+    priority 100
+    advert_int 5
+    authentication {
+        auth_type PASS
+        auth_pass s3cUr3D
+    }
+    virtual_ipaddress {
+        {{ vip_address }}
+    }
+    track_script {
+        apiserver_health_check
+    }
+}
