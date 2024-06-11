@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: keepalived
+  namespace: monitoring
+spec:
+  staticConfigs:
+    - targets:
+        - halb01:9165
+        - halb02:9165
+      labels:
+        vip: lb
+  metricsPath: /metrics
+  relabelings:
+    - targetLabel: job
+      replacement: keepalived
+      action: replace

@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: haproxy
+  namespace: monitoring
+spec:
+  staticConfigs:
+    - targets:
+        - halb01:8404
+        - halb02:8404
+      labels:
+        vip: lb
+  metricsPath: /metrics
+  relabelings:
+    - targetLabel: job
+      replacement: haproxy
+      action: replace
