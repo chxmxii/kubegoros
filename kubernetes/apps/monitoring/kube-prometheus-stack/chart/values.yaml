@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 namespace: monitoring
+=======
+namespaceOverride: monitoring
+>>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
 
 cleanPrometheusOperatorObjectNames: true
 

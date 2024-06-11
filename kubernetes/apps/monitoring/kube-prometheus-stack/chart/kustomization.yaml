@@ -3,9 +3,15 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
+<<<<<<< HEAD
   - grafana
   - argocd
   - scrapeconfig
+=======
+  # - grafana
+  # - rules
+  # - alertmanager
+>>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
 
 patches:
   - path: patches/prometheuses.yaml
