@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination: 
+    namespace: cert-manager
+    server: https://kubernetes.default.svc
+  project: security
+  source:
+    path: kubernetes/apps/security/cert-manager/chart
+    repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
