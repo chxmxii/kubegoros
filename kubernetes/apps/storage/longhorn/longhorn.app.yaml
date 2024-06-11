@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+spec:
+  destination:
+    namespace: longhorn-system
+    server: https://kubernetes.default.svc
+  project: storage
+  source:
+    path: kubernetes/apps/storage/longhorn/chart
+    repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: longhorn
+#   namespace: argocd
+# spec:
+#   destination:
+#     namespace: longhorn-system
+#     server: https://kubernetes.default.svc
+#   project: storage
+#   sources:
+#     - chart: longhorn
+#       repoURL: https://charts.longhorn.io/
+#       targetRevision: v1.6.1
+#       helm:
+#         valueFiles:
+#           - values.yaml
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
