@@ -1,0 +1,2 @@
+---
+kube_cluster_node_type: 'worker'
