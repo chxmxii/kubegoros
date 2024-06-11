@@ -1,0 +1,50 @@
+#tasks to install keepalived metric exporter 'kame'
+---
+- name: Download KeepAlived Metrics Exporter
+  ansible.builtin.get_url:
+    url: "{{ kame_url }}"
+    dest: "{{ kame_archive_path }}.tar.gz"
+    mode: "0755"
+
+- name: Ensure archive utils is installed
+  package:
+    name: tar, zip, unzip
+    state: installed
+
+- name: Unarchive KeepAlived Metrics Exporter
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ kame_archive_path }}.tar.gz"
+    dest: "/tmp/"
+    creates: "/tmp/keepalived-exporter"
+
+- name: Install Metrics Exporter Binary
+  become: true
+  ansible.builtin.copy:
+    remote_src: true
+    src: /tmp/keepalived-exporter
+    dest: /opt/kame
+    mode: "0755"
+
+- name: Deploy Service File
+  become: true
+  ansible.builtin.template:
+    src: templates/kame.service.j2
+    dest: /etc/systemd/system/kame.service
+    owner: root
+    group: root
+    mode: "0644"
+  register: kame_service_copied
+
+- name: Reload Systemd
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: kame_service_copied.changed
+
+- name: Start and Enable KeepAlived Metrics Exporter
+  become: true
+  ansible.builtin.service:
+    name: kame
+    state: started
+    enabled: true
