@@ -5,11 +5,6 @@
     name: kubelet
     state: started
     enabled: true
-#when: ansible_facts.services['kubelet.service'].state != 'running'
-
-#- name: Set node type based on inventory group
-# set_fact:
-#   kube_cluster_node_type: "{{ 'master' if inventory_hostname in groups['kube_controlplanes'] else 'worker' }}"
 
 - name: Configure controlplane nodes
   include_tasks: 01-k8s_masters_config.yml
@@ -19,14 +14,14 @@
   include_tasks: 04-k8s_join_node.yml
   when: kube_cluster_node_type == 'worker'
 
-- name: Label Kubernetes controlplane nodes
-  shell: |
-    kubectl label node {{ kube_cluster_node_name }} node-role.kubernetes.io/control-plane=
-  delegate_to: "{{ kube_cluster_init_main_node_name  }}"
-  when: kube_cluster_node_name in groups['kube_controlplanes']
+# - name: Label Kubernetes controlplane nodes
+#   shell: |
+#     kubectl label node {{ kube_cluster_node_name }} node-role.kubernetes.io/control-plane=
+#   delegate_to: "{{ kube_cluster_init_main_node_name  }}"
+#   when: kube_cluster_node_name in groups['kube_controlplanes']
 
-- name: Label kubernetes worker nodes
-  shell: |
-    kubectl label node {{ kube_cluster_node_name }}  node-role.kubernetes.io/worker=
-  delegate_to: "{{ kube_cluster_init_main_node_name }}"
-  when: kube_cluster_node_name in groups['kube_workernodes'] 
+# - name: Label kubernetes worker nodes
+#   shell: |
+#     kubectl label node {{ kube_cluster_node_name }}  node-role.kubernetes.io/worker=
+#   delegate_to: "{{ kube_cluster_init_main_node_name }}"
+#   when: kube_cluster_node_name in groups['kube_workernodes'] 

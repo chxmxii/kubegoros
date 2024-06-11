@@ -12,15 +12,15 @@
     group: root
     mode: '0640'
 
-- name: Initialize Kubernetes control plane with kubeadm init
-  shell: |
-    kubeadm init --config={{ kubelet_config_root_dir }}/kubeadm-config.yml
-  register: kubeadm_init_output
-  when: not kube_init_check.stat.exists
+- block:
+  - name: Initialize Kubernetes control plane with kubeadm init
+    shell: |
+      kubeadm init --config={{ kubelet_config_root_dir }}/kubeadm-config.yml --upload-certs
+    register: kubeadm_init_output
 
-- name: Debug initialization logs
-  debug:
-    var: kubeadm_init_output.stdout
+  - name: Debug initialization logs
+    debug:
+      var: kubeadm_init_output.stdout_lines
   when: not kube_init_check.stat.exists
 
 - name: Ensure .kube directory exists
@@ -34,7 +34,7 @@
     src: "{{ kubelet_config_root_dir }}/admin.conf"
     dest: "{{ ansible_env.HOME }}/.kube/config"
     state: link
-    mode: '0644'
+    mode: '0640'
 
 - name: Install and configure Calico CNI
   shell: |
