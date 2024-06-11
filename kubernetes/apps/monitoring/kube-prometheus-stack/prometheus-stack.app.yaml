@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io 
+spec:
+  destination:
+    namespace: monitoring
+    server: https://kubernetes.default.svc
+  project: monitoring
+  source:
+    repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    path: kubernetes/apps/monitoring/kube-prometheus-stack/chart
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
