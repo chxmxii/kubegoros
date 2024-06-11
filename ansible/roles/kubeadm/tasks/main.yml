@@ -20,8 +20,16 @@
 #   delegate_to: "{{ kube_cluster_init_main_node_name  }}"
 #   when: kube_cluster_node_name in groups['kube_controlplanes']
 
+<<<<<<< HEAD
 # - name: Label kubernetes worker nodes
 #   shell: |
 #     kubectl label node {{ kube_cluster_node_name }}  node-role.kubernetes.io/worker=
 #   delegate_to: "{{ kube_cluster_init_main_node_name }}"
 #   when: kube_cluster_node_name in groups['kube_workernodes'] 
+=======
+- name: Label kubernetes worker nodes
+  shell: |
+    kubectl label node {{ kube_cluster_node_name }}  node-role.kubernetes.io/worker=
+  delegate_to: "{{ kube_cluster_init_main_node_name }}"
+  when: kube_cluster_node_name in groups['kube_workernodes'] 
+>>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8

@@ -7,7 +7,11 @@ tasks:
   init:
     silent: true
     cmds:
+<<<<<<< HEAD
       - echo "Initializing the Kubernetes cluster..." && ansible-playbook ansible/playbooks/cluster.yml --tags="cluster"
+=======
+      - echo "Initializing the Kubernetes cluster..." && ansible-playbook ansible/playbooks/cluster.yml
+>>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
   

@@ -32,6 +32,7 @@ argocd_new_password: argocdadmin0#
 # @vars for argocd gitlab repository
 kube_server: https://kubernetes.default.svc
 git_repo:
+<<<<<<< HEAD
     gitlab_url: ENC[AES256_GCM,data:XtjlKiY5yUqb1SMJhbl1M2Rhl3Vu4BchSysdWs4aVEcfFEFtHuVIx8EpbnJZDiZEPX1YxtY/yg==,iv:XsglrVSc7VfXlgs/nvKeAorFFiBS367FmkVdAQQb2tc=,tag:qT63MOZlZNACzEhU78ZVBg==,type:str]
     gitlab_password: ENC[AES256_GCM,data:+gz50gTlVCEH/Ntvrp2H,iv:m0nW1vfMSSD6m75cl7etXHwVpzq4FKwXHFfoMIxVjB8=,tag:nuyNIZgSv1c/f+lkKGT/1Q==,type:str]
     gitlab_username: ENC[AES256_GCM,data:EOOvBsLc7w==,iv:Ofl/SrALlLvED54IrgSGJxDuZ/PILI5eWsLtFPADrP0=,tag:OBlzL41DwWgFLUz2bhxZGA==,type:str]
@@ -56,3 +57,9 @@ sops:
     pgp: []
     encrypted_regex: ^git_repo$
     version: 3.8.1
+=======
+    gitlab_url: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    gitlab_password: chamsi51333560.
+    gitlab_username: chxmxii
+    repoistory_type: git
+>>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
