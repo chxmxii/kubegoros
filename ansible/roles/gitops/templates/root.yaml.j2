@@ -7,11 +7,11 @@ metadata:
 spec:
   destination:
     namespace: {{ argocd_namespace }}
-    server: {{ kube_server }} #https://kubernetes.defaults.svc
+    server: {{ kube_server }}
   project: default
   source:
     path: kubernetes/apps
-    server: {{ gitlab_repourl }} #https://gitlab.com/chxmxii/cluster-template-coralio.git
+    repoURL: {{ git_repo.gitlab_url }}
     targetRevision: HEAD
     directory:
       recurse: true
