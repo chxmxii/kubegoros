@@ -9,7 +9,7 @@ spec:
   destination:
     namespace: ingress-nginx
     server: https://kubernetes.default.svc
-  project: apps
+  project: networking
   source:
     repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
     path: kubernetes/apps/networking/nginx-ingress-controller/chart
@@ -20,4 +20,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
