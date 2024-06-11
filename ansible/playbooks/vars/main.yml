@@ -1,4 +1,18 @@
 ---
+# @vars for haproxy and keepalived
+vip_address: 10.254.100.99
+
+haproxy_metrics_isenabled: true
+lua_version: 5.3.6
+
+keepalived_metrics_isenabled: true
+kame_version: 1.3.3
+sys_arch: '{{ ''amd64'' if ansible_architecture == ''x86_64'' else ''arm64'' }}'
+kame_archive_path:  "/tmp/keepalived_exporter-{{ kame_version }}.linux-{{ sys_arch }}"
+kame_url: "https://github.com/mehdy/keepalived-exporter/releases/download/v{{ kame_version }}/keepalived-exporter-{{ kame_version }}.linux-{{ sys_arch }}.tar.gz"
+
+
+# @vars for firewalld config
 controlplane_firewall_ports:
   - 10248
   - 10249
