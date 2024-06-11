@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+data:
+  token: {{.Values.vaultStore.vaultToken}} 
+type: Opaque
