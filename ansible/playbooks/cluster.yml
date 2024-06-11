@@ -1,24 +1,20 @@
 ---
-- name: Configure HAProxy Load Balancer
-  hosts: halb, kube_controlplanes
+- name: Configure HAProxy Load Balancer with Keepalived
+  hosts: haproxylb, kube_controlplanes
   become: true
   tags: haproxy
+  vars_files:
+    - vars/main.yml
+  # vars:
+  #   vip_address: 10.254.100.99
   tasks:
-    - name: HAProxy configuration
-      block:
-        - name: Install and configure HAProxy 
-          include_tasks: tasks/01-haproxy.yml
+    - name: Install and configure HAProxy and Keepalived
+      include_tasks: tasks/01-haproxy.yml
+      when: inventory_hostname in groups['haproxylb']
 
-        - name: Ensure HAProxy is restared
-          systemd:
-            name: haproxy
-            state: restarted
-      when: inventory_hostname == 'halb'
-
-#####################################################
 
 - name: Initialize Kubernetes Cluster
-  hosts: kube_controlplanes
+  hosts: kube_cluster
   tags: cluster
   become: true
   collections:
@@ -26,29 +22,12 @@
     - ansible.posix
     - community.general
     - kubernetes.core
-  vars:
-    haproxy_ip: 10.254.100.92
   vars_files:
     - vars/main.yml
   roles:
-    #- role: ../roles/pre-setup
-      #- role: ../roles/containerd
-      #- role: ../roles/kubeadm
+    - role: ../roles/pre-setup
+    - role: ../roles/containerd
+    - role: ../roles/etcd
+    - role: ../roles/kubeadm
     - role: ../roles/gitops
-
-#####################################################
-
-- name: Configure firewalld on all hosts
-  hosts: kube_cluster, etcd
-  tags: firewall
-  become: true
-  tasks:
-    - name: Enable firewalld and permit necessary ports and services
-      include_tasks: tasks/00-allow_firewall.yml 
-
-  handlers:
-    - name: Reload firewalld
-      service:
-        name: firewalld
-        state: restarted
 ...
