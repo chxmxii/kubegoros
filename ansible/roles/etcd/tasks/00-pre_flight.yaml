@@ -1,0 +1,33 @@
+#tasks for 00-pre_flight.yaml
+---
+
+- name: Create etcd system group if missing
+  ansible.builtin.group:
+    name: "{{ etcd_group.name }}"
+    state: present
+
+- name: Create etcd system user if missing
+  ansible.builtin.user: 
+    name: "{{ etcd_user.name }}"
+    group: "{{ etcd_group.name }}"
+
+- name: Create etcd configuration directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ etcd_conf_dir.path }}"
+    mode: "{{ etcd_conf_dir.mode }}"
+    owner: "{{ etcd_conf_dir.user }}"
+    group: "{{ etcd_conf_dir.group }}"
+
+- name: Create temporary directory for etcd downloads
+  ansible.builtin.file:
+    path: /tmp/etcd
+    state: directory
+
+- name: Create etcd data directory for persistent storage
+  ansible.builtin.file:
+    state: directory
+    path: "{{ etcd_data_dir.path }}"
+    mode: "{{ etcd_data_dir.mode }}"
+    owner: "{{ etcd_data_dir.user }}"
+    group: "{{ etcd_data_dir.group }}"

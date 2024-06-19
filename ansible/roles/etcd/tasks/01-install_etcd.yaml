@@ -1,0 +1,52 @@
+#tasks for 00-install_etcd.yaml
+---
+
+- name: Copy etcd certificate files
+  ansible.builtin.copy:
+    src: "{{ etcd_ca_conf_directory }}/{{ item }}"
+    dest: "{{ etcd_conf_dir.path }}/{{ item }}"
+    owner: "{{ etcd_conf_dir.user }}"
+    group: "{{ etcd_conf_dir.group }}"
+    mode: "0640"
+  loop:
+    - "{{ etcd_certificates }}"
+
+- name: Download latest etcd release
+  ansible.builtin.get_url:
+    url: "{{ etcd_url }}"
+    dest: "/tmp/etcd/etcd-v{{ etcd_version }}-linux-{{ system_arch }}.tar.gz"
+    checksum: "{{ etcd_url_checksum }}"
+    mode: "0755"
+
+- name: Extract etcd archive
+  ansible.builtin.unarchive:
+    src: "/tmp/etcd/etcd-v{{ etcd_version }}-linux-{{ system_arch }}.tar.gz"
+    dest: "/tmp/etcd/"
+    remote_src: true
+    owner: "root"
+    group: "root"
+    creates: "/tmp/etcd/etcd-v{{ etcd_version }}-linux-{{ system_arch }}/etcd"
+
+- name: Move etcd binaries to final location
+  ansible.builtin.copy:
+    remote_src: true
+    src: "/tmp/etcd/etcd-v{{ etcd_version }}-linux-{{ system_arch }}/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    mode: "0755"
+    owner: "root"
+    group: "root"
+  loop:
+    - etcd
+    - etcdctl
+
+- name: Merge etcd configuration settings (if defined).
+  ansible.builtin.set_fact:
+    etcd_settings: "{{ etcd_settings | combine(etcd_settings_user | default({})) }}"
+
+- name: Generate systemd unit file for etcd
+  ansible.builtin.template:
+    src: etc/systemd/system/etcd.service.j2
+    dest: /etc/systemd/system/etcd.service
+    owner: "root"
+    group: "root"
+    mode: "0644"
