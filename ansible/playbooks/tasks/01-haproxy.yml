@@ -1,6 +1,5 @@
 #task for haproxy
 ---
-<<<<<<< HEAD
 - name: Ensure the hostname is changed.
   hostname:
     name: "{{ inventory_hostname }}"
@@ -17,12 +16,6 @@
   set_fact:
     halb01_address : "{{ hostvars['halb01']['ansible_default_ipv4']['address'] }}"
 
-=======
-- name: set fact for halb01 address
-  set_fact:
-    halb01_address : "{{ hostvars['halb01']['ansible_default_ipv4']['address'] }}"
-
->>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
 - name: set fact for halb02 address
   set_fact:
     halb02_address : "{{ hostvars['halb02']['ansible_default_ipv4']['address'] }}"
@@ -34,20 +27,16 @@
     state: present
     reload: true
 
-<<<<<<< HEAD
 #to_do: add condition to ignore lua installation if exists.
 - name: Get lua version
   command: lua -v
   register: lua_version
 
-=======
->>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
 - name: Install HAProxy and keepalived packages
   yum:
     name: haproxy, keepalived, psmisc
     state: present
 
-<<<<<<< HEAD
 - name: Install HAProxy with Prometheus Exporter
   when: haproxy_metrics_isenabled 
   block:
@@ -128,8 +117,6 @@
         - /tmp/haproxy
         - /tmp/lua-{{ lua_version }}
 
-=======
->>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
 - name: Deploy HAProxy Configuration
   template:
     src: haproxy.cfg.j2
@@ -157,8 +144,4 @@
 
 - name: Ensure Keepalived metrics exported is installed and enabled.
   include_tasks: 02-install_kame.yml
-<<<<<<< HEAD
   when: keepalived_metrics_isenabled
-=======
-  when: kame_isEnabled
->>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
