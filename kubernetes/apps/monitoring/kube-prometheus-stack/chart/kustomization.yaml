@@ -3,15 +3,9 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-<<<<<<< HEAD
   - grafana
-  - argocd
+  # - argocd
   - scrapeconfig
-=======
-  # - grafana
-  # - rules
-  # - alertmanager
->>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
 
 patches:
   - path: patches/prometheuses.yaml
@@ -22,6 +16,6 @@ helmCharts:
   - name: kube-prometheus-stack
     includeCRDs: true
     releaseName: kube-prometheus-stack
-    version: "58.5.0"
+    version: "60.1.0"
     repo: https://prometheus-community.github.io/helm-charts
     valuesFile: values.yaml
