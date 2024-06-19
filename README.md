@@ -154,7 +154,12 @@ Follow these steps to install:
 Once installed and configured, use taskfile to deploy and manage your Kubernetes cluster:
 
 ```bash
-Usage:
+           __   ___  __   __   __   __   __  
+|__/ |  | |__) |__  / _` /  \ |__) /  \ /__` 
+|  \ \__/ |__) |___ \__> \__/ |  \ \__/ .__/ 
+                                             
+
+ ⎈ Usage:
 
   task help            -> Display this message
   task env:prepare     -> Prepare the environment for the project
@@ -162,7 +167,10 @@ Usage:
   task cluster:init    -> Provision the Kubernetes cluster
   task cluster:reset   -> Reset the Kubernetes cluster
   task cluster:upgrade -> Upgrade the Kubernetes cluster
-  task cluster:backup  -> Take cluster Backup
+  task cluster:backup  -> Create cluster Backup
+  task nodes:check     -> Verify Cluster Nodes Connectivity
+  task nodes:list      -> Display Ansible Inventory
+  task nodes:reboot    -> Reboot Cluster nodes
   task policy:enable   -> Enable kyverno Policies
   task policy:disable  -> Disable kyverno Policies
 ```
