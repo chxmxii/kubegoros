@@ -1,2 +1,17 @@
----
 # tasks file for etcd
+---
+
+- name: Ensrure etcd service is installed.
+  block:
+    - name: Create etcd user, group, and directories
+      include_tasks: 00-pre_flight.yaml
+
+    - name: Install etcd packages and configure etcd
+      include_tasks: 00-install_etcd.yaml
+
+
+- name: Enable and start etcd
+  ansible.builtin.service:
+    name: etcd
+    enabled: true
+    state: started
