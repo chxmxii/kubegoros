@@ -2,5 +2,6 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: prometheuses.monitoring.coreos.com
+  namespace: monitoring
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
