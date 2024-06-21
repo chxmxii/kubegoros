@@ -6,8 +6,8 @@ metadata:
 spec:
   staticConfigs:
     - targets:
-        - halb01:8404
-        - halb02:8404
+        - 10.254.100.112:8404
+        - 10.254.100.123:8404
       labels:
         vip: lb
   metricsPath: /metrics
