@@ -27,11 +27,6 @@
     state: present
     reload: true
 
-#to_do: add condition to ignore lua installation if exists.
-- name: Get lua version
-  command: lua -v
-  register: lua_version
-
 - name: Install HAProxy and keepalived packages
   yum:
     name: haproxy, keepalived, psmisc
