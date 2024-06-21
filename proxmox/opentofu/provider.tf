@@ -22,14 +22,8 @@ terraform {
 
 provider "proxmox" {
   endpoint  = var.proxmox_api_endpoint
-  # api_token = var.proxmox_api_token
-  # insecure  = true
-
+  
   ssh {
     agent = true
-    # username = "root"
-    # password = "8krsoklrX2vtq7nF"
-    # private_key = file("/root/.ssh/id_rsa")
   }
 }
-
