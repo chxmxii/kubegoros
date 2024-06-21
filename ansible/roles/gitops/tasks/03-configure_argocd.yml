@@ -44,9 +44,6 @@
 - name: Set initial admin password fact
   set_fact:
     argocd_initial_password: "{{ argocd_init_secret.resources[0].data.password | b64decode }}"
-  until: argocd_initial_password is not none and argocd_initial_password != ''
-  retries: 5  
-  delay: 10  
 
 - name: Change ArgoCD  admin password
   block:

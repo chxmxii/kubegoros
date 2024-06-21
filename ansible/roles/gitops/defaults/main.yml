@@ -32,34 +32,7 @@ argocd_new_password: argocdadmin0#
 # @vars for argocd gitlab repository
 kube_server: https://kubernetes.default.svc
 git_repo:
-<<<<<<< HEAD
-    gitlab_url: ENC[AES256_GCM,data:XtjlKiY5yUqb1SMJhbl1M2Rhl3Vu4BchSysdWs4aVEcfFEFtHuVIx8EpbnJZDiZEPX1YxtY/yg==,iv:XsglrVSc7VfXlgs/nvKeAorFFiBS367FmkVdAQQb2tc=,tag:qT63MOZlZNACzEhU78ZVBg==,type:str]
-    gitlab_password: ENC[AES256_GCM,data:+gz50gTlVCEH/Ntvrp2H,iv:m0nW1vfMSSD6m75cl7etXHwVpzq4FKwXHFfoMIxVjB8=,tag:nuyNIZgSv1c/f+lkKGT/1Q==,type:str]
-    gitlab_username: ENC[AES256_GCM,data:EOOvBsLc7w==,iv:Ofl/SrALlLvED54IrgSGJxDuZ/PILI5eWsLtFPADrP0=,tag:OBlzL41DwWgFLUz2bhxZGA==,type:str]
-    repoistory_type: ENC[AES256_GCM,data:YbmX,iv:TYeoyRJZMJFOv468A1FlC1UiCx2cOZQqDWQzrVmCtEU=,tag:1zEmXyCUiJENHO/ITOHFYQ==,type:str]
-sops:
-    kms: []
-    gcp_kms: []
-    azure_kv: []
-    hc_vault: []
-    age:
-        - recipient: age1yya5xs2rlqsualafaca3a03caceahmxucudm5uld7dr0g2utyqrq6ph3gl
-          enc: |
-            -----BEGIN AGE ENCRYPTED FILE-----
-            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBhY0Q2UXFOaEYyb05NUzZs
-            L2NWRytvckJhSElCN3hLMnIwQkgrWmdNZzFvClpubnA5dXFoMFRFSVdzMjBZelkw
-            Mk9NZ3EwSDhRZkZYdjd6M3lSd3ZsMGsKLS0tIDQ3WXVKaDBEL1VIK0FjelhjVmdJ
-            NEg1aGJaWVRHRFBHd0tqaFRRMzBuaDgKzAjpsDJ5duu1tJD3oAkUuVRcYCoq5T1x
-            hl5OimMBu1l0QgazfCMwXsRpE1Mt/qNESxTRFPxMzNjTFX0gYvGp0A==
-            -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2024-06-11T17:30:33Z"
-    mac: ENC[AES256_GCM,data:i1cESz6MNZdBnvsYrmcIxoIke1pYvQ9CGsdSTQ0uhH+8JT0dyDjYwYxHuH2lRdCIXvaV4q/+ARJb0xGg1mLZ86C1PifCdbbfYucvOkHeg0kuu0gVBl+F30e6ht3uU3WsgG877OSghngRn4gf6P8UdD1O7KKGsZrmJlV+0ZPKNXM=,iv:wIVQNwJ5NmWAKmE/3TA0VA91NMaP4vfT+Hhm1YyKYPs=,tag:XSP95XeBlzWkoQ0U9yU34w==,type:str]
-    pgp: []
-    encrypted_regex: ^git_repo$
-    version: 3.8.1
-=======
     gitlab_url: https://gitlab.com/chxmxii/cluster-template-coralio.git
     gitlab_password: chamsi51333560.
     gitlab_username: chxmxii
     repoistory_type: git
->>>>>>> 7af34abd874d3d234cbd9d26cc9fbbb9bcf899a8
