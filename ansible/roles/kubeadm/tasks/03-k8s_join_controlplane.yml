@@ -1,18 +1,4 @@
 ---
-- block: 
-    - name: Gather Certficate key
-      delegate_to: "{{ kube_cluster_init_main_node_name }}"
-      shell: |
-        kubeadm init phase upload-certs --upload-certs
-      register: kubeadm_phase_upload_certs
-
-    - name: Set fact for certificate key
-      set_fact:
-        kube_cluster_certificate_key: "{{ kubeadm_phase_upload_certs.stdout_lines | select('search', '^[a-f0-9]{64}$') | list | first }}"
-      delegate_facts: true
-      delegate_to: "{{ item }}"
-      loop: "{{ ansible_play_hosts }}"
-
 - name: Create control plane configuration and certs diretory
   file:
     path: "{{ kubelet_config_root_dir }}/pki/etcd"
