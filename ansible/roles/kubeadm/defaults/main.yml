@@ -14,11 +14,9 @@ kube_cni_calico: "https://projectcalico.docs.tigera.io/manifests/calico.yaml"
 kube_cluster_node_name: "{{ inventory_hostname }}"
 
 kube_cluster_initial_controlplane: false
-
 #-------------------------
 # kubeadm j2 template
 #-------------------------
-
 kube_cfg_init_conf:
   nodeRegistration:
     name: "{{ kube_cluster_node_name }}"
@@ -39,19 +37,6 @@ kube_cfg_cluster_conf:
   scheduler:
     extraArgs:
       bind-address: "0.0.0.0"
-
-kube_cfg_join_conf_controlplane:
-  nodeRegistration:
-    name: "{{ kube_cluster_node_name }}"
-  discovery:
-    bootstrapToken:
-      token: "{{ kube_cluster_join_token }}"  
-      apiServerEndpoint: "{{ kube_cluster_api_server_ip }}:{{ kube_cfg_init_conf.localAPIEndpoint.bindPort }}"
-      caCertHashes:
-        - "sha256:{{ kube_cluster_root_ca_hash }}"
-      unsafeSkipCAVerification: false
-  controlPlane:
-    certificateKey: "{{ kube_cluster_certificate_key }}"
 
 kube_cfg_join_conf:
   nodeRegistration:
