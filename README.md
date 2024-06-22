@@ -13,6 +13,8 @@ A GitOps-based tool leveraging ArgoCD, Ansible and kubeadm for streamlined deplo
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
 ![arch](docs/arch.png)
 ---
+
+## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Environment
 All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.4-14.
 
 | Hostname         | OS       | Type      |
