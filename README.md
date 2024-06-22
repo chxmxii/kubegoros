@@ -1,7 +1,7 @@
 <div align="center">
   
 #  KUBEGOROS
-Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion 🚀
+Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/ArgoCD 🚀
 </div>
 
 ---
@@ -12,6 +12,20 @@ A GitOps-based tool leveraging ArgoCD, Ansible and kubeadm for streamlined deplo
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
 ![arch](docs/arch.png)
+---
+All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.4-14.
+
+| Hostname         | OS       | Type      |
+|:-----------------|:---------|:----------|
+| controlplane1    | CoreOS   | VM        |
+| controlplane2    | CoreOS   | VM        |
+| controlplane3    | CoreOS   | VM        |
+| workernode1      | CoreOS   | VM        |
+| workernode2      | CoreOS   | VM        |
+| workernode3      | CoreOS   | VM        |
+| halb01           | CentOS 7 | LXC       |
+| halb02           | CentOS 7 | LXC       |
+
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Features
 
