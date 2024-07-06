@@ -1,14 +1,14 @@
 #!/bin/bash
 
 banner="
-        __   __   __               __  
-       /  \` /  \ |__)  /\  |    | /  \ 
-       \__, \__/ |  \ /~~\ |___ | \__/ "
+           __   ___  __   __   __   __   __  
+|__/ |  | |__) |__  / _\` /  \ |__) /  \ /__\` 
+|  \ \__/ |__) |___ \__> \__/ |  \ \__/ .__/ 
+"
       
 echo ""
-echo "⎈ Welcome to CORALIO-CLUSTER-TEMPLATE ⎈"
 echo "${banner}"
-echo -e "\n\e[1mUsage:\e[0m"
+echo -e "\n\e[1m ⎈ Usage:\e[0m"
 echo ""
 echo -e "  \e[37mtask\e[0m \e[94mhelp\e[0m            -> \e[94mDisplay this message\e[0m"
 echo -e "  \e[37mtask\e[0m \e[94menv\e[0m\e[37m:\e[0m\e[94mprepare\e[0m     -> \e[94mPrepare the environment for the project\e[0m"
