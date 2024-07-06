@@ -53,7 +53,7 @@ Before getting started, ensure you have:
 
 Follow these steps to install:
 ```
-1. git clone https://gitlab.com/chxmxii/kubegoros.git
+1. git clone https://github.com/chxmxii/kubegoros.git
 2. task env:install 
 ```
 ---
