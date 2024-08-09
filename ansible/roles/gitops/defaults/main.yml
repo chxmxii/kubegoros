@@ -31,8 +31,8 @@ argocd_cli_url: https://github.com/argoproj/argo-cd/releases/download/v{{ argocd
 argocd_new_password: argocdadmin0#
 # @vars for argocd gitlab repository
 kube_server: https://kubernetes.default.svc
-git_repo:
-    gitlab_url: https://gitlab.com/chxmxii/cluster-template-coralio.git
-    gitlab_password: chamsi51333560.
-    gitlab_username: chxmxii
-    repoistory_type: git
+git_repo: #change the values.
+    gitlab_url: REDACTED
+    gitlab_password: <REDACTED>
+    gitlab_username: REDACTED
+    repoistory_type: REDACTED 
