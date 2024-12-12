@@ -1,0 +1,61 @@
+{
+    "enabled": true,
+    "gitAuthor": "renovate <chxmxii.ctf@gmail.com>",
+    "semanticCommits": "enabled",
+    "labels": ["renovatebot"],
+    "semanticCommitScope": "images",
+    "dependencyDashboard": true,
+    "dependencyDashboardTitle": "Renovate Dashboard",
+    "suppressNotifications": ["prIgnoreNotification"],
+    "rebaseWhen": "conflicted",
+    "argocd": {
+        "fileMatch": [
+            "kubernetes\/apps\/.*\\.app\\.yaml"
+        ]
+    },
+    "packageRules": [
+      {
+        "matchManagers": ["kubernetes"],
+        "matchDatasources": ["kubernetes-api"],
+        "enabled": false
+      },
+      {
+        "matchDatasources": ["docker"],
+        "matchUpdateTypes": ["major"],
+        "enabled": true
+      },
+      {
+        "matchDatasources": ["docker"],
+        "addLabels": ["docker/image"]
+      },
+      {
+        "matchUpdateTypes": [
+          "patch",
+          "pin",
+          "digest"
+        ],
+        "automerge": true
+      },
+      {
+        "matchUpdateTypes": ["major"],
+        "addLabels": [ "dep/major"]
+      },
+      {
+        "matchUpdateTypes": ["minor", "patch"],
+        "addLabels": [ "dep/minor"]
+      }
+    ],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "description": ["Process custom dependencies"],
+            "fileMatch": [
+                "ansible\/.*\/.*\\.yaml$"
+            ],
+            "matchStrings": [
+                "(?m:# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+?: \"?(?<currentValue>\\S+?)\"?$)"
+            ],
+            "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}"
+        }
+    ]
+}
