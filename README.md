@@ -31,11 +31,9 @@ All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Features
 
-- 📦 Declarative deployment of production-ready bare-metal Kubernetes clusters.
-- 🛠️ GitOps-based approach for managing Kubernetes apps.
-- 🔄 Streamlined provisioning and management of clusters.
-- 🚀 Simplified application deployment and configuration.
-- 🔧 Customizable configurations for specific use cases.
+- Declarative deployment of production-ready bare-metal Kubernetes clusters.
+- GitOps-based approach for managing Kubernetes apps.
+- Streamlined provisioning and management of clusters.
 
 ---
 
