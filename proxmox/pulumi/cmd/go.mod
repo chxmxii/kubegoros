@@ -2,7 +2,7 @@ module ctProvisioner
 
 go 1.20
 
-require github.com/pulumi/pulumi/sdk/v3 v3.120.0
+require github.com/pulumi/pulumi/sdk/v3 v3.208.0
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
