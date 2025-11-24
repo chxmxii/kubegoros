@@ -1,7 +1,7 @@
 <div align="center">
   
 #  KUBEGOROS
-Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/ArgoCD 🚀
+Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/ArgoCD
 </div>
 
 ---
