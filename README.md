@@ -8,6 +8,7 @@ Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/A
 ##  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> What's this?
 
 Provision your multi-master and multi-node kubernetes cluster homelab with ansible and kubeadm in the GitOps way! 
+
 ---
 ## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
 ![arch](docs/arch.png)
