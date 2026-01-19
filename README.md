@@ -5,22 +5,22 @@ Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/A
 </div>
 
 ---
-##  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> What's this?
+## What's this?
 
 Provision your multi-master and multi-node kubernetes cluster homelab with ansible and kubeadm in the GitOps way! 
 
 ---
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Architecture
+## Architecture
 ![arch](docs/arch.png)
 ---
 
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Environment
+## Environment
 All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.4-14.
 
-| Hostname         | OS       | Type      |
-|:-----------------|:---------|:----------|
-| controlplane1    | CoreOS   | VM        |
-| controlplane2    | CoreOS   | VM        |
+| Hostname         | OS       | Type      | Specs |
+|:-----------------|:---------|:----------|:------|
+| controlplane1    | CoreOS   | VM        |       
+| controlplane2    | CoreOS   | VM        | 
 | controlplane3    | CoreOS   | VM        |
 | workernode1      | CoreOS   | VM        |
 | workernode2      | CoreOS   | VM        |
@@ -29,7 +29,7 @@ All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.
 | halb02           | CentOS 7 | LXC       |
 
 ---
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Features
+## Features
 
 - Declarative deployment of production-ready bare-metal Kubernetes clusters.
 - GitOps-based approach for managing Kubernetes apps.
@@ -37,7 +37,7 @@ All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.
 
 ---
 
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Prerequisites
+## Prerequisites
 
 Before getting started, ensure you have:
 ```
@@ -47,7 +47,7 @@ Before getting started, ensure you have:
 ```
 ---
 
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Installation
+## Installation
 
 Follow these steps to install:
 ```
@@ -55,7 +55,7 @@ Follow these steps to install:
 2. task env:install 
 ```
 ---
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Project Strcuture
+## Project Strcuture
 
 ```md
 📁 kubegoros
@@ -77,7 +77,7 @@ Follow these steps to install:
 
 ```
 ---
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Stack
+## Stack
 <table>
     <tr>
         <th>Logo</th>
@@ -163,7 +163,7 @@ Follow these steps to install:
 
 
 ---
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Usage
+## Usage
 
 Once installed and configured, use taskfile to deploy and manage your Kubernetes cluster:
 
@@ -190,7 +190,7 @@ Once installed and configured, use taskfile to deploy and manage your Kubernetes
 ```
 ---
 
-## <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/640px-Tux.svg.png" alt="UNIX Like Systems" width="20" height="25"  style="vertical-align:top; margin:4px"> Roadmap
+## Roadmap
 
 + Add support for Talos.
 + Cloudfalre integration.
