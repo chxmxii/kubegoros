@@ -11,7 +11,7 @@ spec:
   source:
     chart: kyverno
     repoURL: https://kyverno.github.io/kyverno
-    targetRevision: 3.6.2
+    targetRevision: 3.7.0
   ignoreDifferences:
   - group: rbac.authorization.k8s.io
     kind: ClusterRole
