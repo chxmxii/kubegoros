@@ -2,7 +2,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "0.108.0"
+      version = "0.111.1"
     }
     ct = {
       source  = "poseidon/ct"
