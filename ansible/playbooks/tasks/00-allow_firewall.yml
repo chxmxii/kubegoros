@@ -7,7 +7,7 @@
 
 - name: Permit necessary ports for controlplanes
   firewalld:
-    port: "{{ item }}/tcp"
+    port: "{{ item if '/' in (item | string) else item ~ '/tcp' }}"
     state: enabled
     permanent: true
   loop: "{{ controlplane_firewall_ports }}"
@@ -16,7 +16,7 @@
 
 - name: Permit necessary ports for worker nodes
   firewalld:
-    port: "{{ item }}/tcp" 
+    port: "{{ item if '/' in (item | string) else item ~ '/tcp' }}" 
     state: enabled
     permanent: true
   loop: "{{ workernode_firewall_ports }}" 

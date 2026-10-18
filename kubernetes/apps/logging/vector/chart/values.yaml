@@ -1,0 +1,65 @@
+vector:
+  # Agent role = DaemonSet with the hostPath mounts needed by the kubernetes_logs source
+  role: Agent
+
+  tolerations:
+    - operator: Exists
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  podMonitor:
+    enabled: true
+
+  customConfig:
+    data_dir: /vector-data-dir
+    api:
+      enabled: true
+      address: 127.0.0.1:8686
+    sources:
+      kubernetes_logs:
+        type: kubernetes_logs
+      internal_metrics:
+        type: internal_metrics
+    transforms:
+      k8s:
+        type: remap
+        inputs: [kubernetes_logs]
+        source: |
+          .namespace = .kubernetes.pod_namespace
+          .pod = .kubernetes.pod_name
+          .container = .kubernetes.container_name
+          .node = .kubernetes.pod_node_name
+          .app = .kubernetes.pod_labels."app.kubernetes.io/name" || .kubernetes.pod_labels.app || .kubernetes.container_name
+          del(.kubernetes)
+          del(.file)
+    sinks:
+      loki:
+        type: loki
+        inputs: [k8s]
+        endpoint: http://loki-gateway.logging.svc.cluster.local
+        encoding:
+          codec: json
+        # Helm renders values through tpl, so Vector's own {{ }} templates are escaped.
+        # Keep stream labels low-cardinality; pod name goes to structured metadata
+        labels:
+          namespace: '{{ "{{ namespace }}" }}'
+          app: '{{ "{{ app }}" }}'
+          container: '{{ "{{ container }}" }}'
+          node: '{{ "{{ node }}" }}'
+          stream: '{{ "{{ stream }}" }}'
+        structured_metadata:
+          pod: '{{ "{{ pod }}" }}'
+        out_of_order_action: accept
+        buffer:
+          type: disk
+          max_size: 268435488
+          when_full: block
+      prometheus:
+        type: prometheus_exporter
+        inputs: [internal_metrics]
+        address: 0.0.0.0:9090

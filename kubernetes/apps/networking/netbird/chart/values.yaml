@@ -1,0 +1,33 @@
+kubernetes-operator:
+  # Webhook certificates are issued by cert-manager
+  webhook:
+    enableCertManager: true
+  # Uncomment for self-hosted NetBird (defaults to NetBird cloud)
+  # managementURL: https://netbird.example.com
+  cluster:
+    name: kubegoros
+  # NetBird management API token (Personal Access Token of a service user), pulled from Vault below.
+  # See docs/platform.md for the one-time NetBird setup.
+  netbirdAPI:
+    keyFromSecret:
+      name: netbird-mgmt-api-key
+      key: NB_API_KEY
+
+# Vault (KV v1, ClusterSecretStore "vault") path holding the API token under key "api_key"
+apiKey:
+  vaultPath: netbird
+
+# Routing peers that tunnel NetBird clients into the cluster
+router:
+  replicas: 2
+  # Must be an existing DNS zone in NetBird (Dashboard -> DNS -> Zones)
+  dnsZone: k8s.coralio.co
+
+# Cluster services published as NetBird network resources.
+# `groups` are NetBird group names whose peers may reach the resource (via an access policy in the dashboard).
+resources:
+  - name: ingress-nginx
+    namespace: ingress-nginx
+    service: ingress-nginx-controller
+    groups:
+      - homelab-admins

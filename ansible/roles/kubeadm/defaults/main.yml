@@ -1,7 +1,8 @@
 # defaults file for kubeadm
 ---
 
-kube_version_kubeadm: "1.29.1"
+# renovate: datasource=github-releases depName=kubernetes/kubernetes
+kube_version_kubeadm: "1.37.1"
 
 kubelet_config_root_dir: "/etc/kubernetes"
 
@@ -9,7 +10,15 @@ kube_apiserver_advertise_address: ""
 
 kube_cluster_extlb: "{{ vip_address }}"  
 
-kube_cni_calico: "https://projectcalico.docs.tigera.io/manifests/calico.yaml"
+# Cilium is installed from the same wrapper chart ArgoCD later adopts (kubernetes/apps/networking/cilium/chart)
+kube_cni_cilium_chart: "{{ playbook_dir }}/../../kubernetes/apps/networking/cilium/chart"
+# Monitoring CRDs don't exist yet at bootstrap; ArgoCD turns these back on.
+kube_cni_cilium_bootstrap_overrides:
+  - cilium.prometheus.serviceMonitor.enabled=false
+  - cilium.operator.prometheus.serviceMonitor.enabled=false
+  - cilium.hubble.metrics.serviceMonitor.enabled=false
+  - cilium.hubble.relay.prometheus.serviceMonitor.enabled=false
+  - cilium.hubble.ui.ingress.enabled=false
 
 kube_cluster_node_name: "{{ inventory_hostname }}"
 
@@ -18,10 +27,13 @@ kube_cluster_initial_controlplane: false
 # kubeadm j2 template
 #-------------------------
 kube_cfg_init_conf:
+  # Cilium runs with kubeProxyReplacement, so kube-proxy is never deployed
+  skipPhases:
+    - addon/kube-proxy
   nodeRegistration:
     name: "{{ kube_cluster_node_name }}"
   localAPIEndpoint:
-    advertiseAddress: "{{ kube_apiserver_advertise_address | default(ansible_default_ipv4['address']) }}"
+    advertiseAddress: "{{ kube_apiserver_advertise_address | default(ansible_default_ipv4['address'], true) }}"
     bindPort: 6443
 
 kube_cfg_cluster_conf:
@@ -33,10 +45,12 @@ kube_cfg_cluster_conf:
   controlPlaneEndpoint: "{{ kube_cluster_extlb | default(hostvars[inventory_hostname]['ansible_facts']['default_ipv4']['address']) }}:6443"
   controllerManager:
     extraArgs:
-      bind-address: "0.0.0.0"
+      - name: bind-address
+        value: "0.0.0.0"
   scheduler:
     extraArgs:
-      bind-address: "0.0.0.0"
+      - name: bind-address
+        value: "0.0.0.0"
 
 kube_cfg_join_conf:
   nodeRegistration:
@@ -52,7 +66,3 @@ kube_cfg_join_conf:
 kube_cfg_kubelet_conf:
   cgroupDriver: "systemd"
   failSwapOn: false
-
-# https://kubernetes.io/docs/reference/config-api/kube-proxy-config.v1alpha1/
-kube_cfg_kubeproxy_conf:
-  metricsBindAddress: "0.0.0.0:10249"

@@ -13,7 +13,7 @@ spec:
   project: apps
   source:
     path: kubernetes/apps/monitoring/metric-server/chart
-    repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    repoURL: https://github.com/chxmxii/kubegoros.git
     targetRevision: HEAD
   syncPolicy:
     automated:

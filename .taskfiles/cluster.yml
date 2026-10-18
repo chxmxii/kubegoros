@@ -20,7 +20,10 @@ tasks:
         
   upgrade:
     silent: true
+    desc: "Upgrade one minor version at a time, e.g. task cluster:upgrade VERSION=1.30"
+    requires:
+      vars: [VERSION]
     cmds:
-      - echo "Upgrading the Kubernetes cluster..." && ansible-playbook ansible/playbooks/upgrade.yml
+      - echo "Upgrading the Kubernetes cluster to {{.VERSION}}..." && ansible-playbook ansible/playbooks/upgrade.yml -e kube_upgrade_version={{.VERSION}}
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }

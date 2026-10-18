@@ -1,0 +1,19 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ index .Values "kubernetes-operator" "netbirdAPI" "keyFromSecret" "name" }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: vault
+  target:
+    name: {{ index .Values "kubernetes-operator" "netbirdAPI" "keyFromSecret" "name" }}
+  data:
+    - secretKey: {{ index .Values "kubernetes-operator" "netbirdAPI" "keyFromSecret" "key" }}
+      remoteRef:
+        key: {{ .Values.apiKey.vaultPath }}
+        property: api_key

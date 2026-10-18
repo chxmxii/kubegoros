@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+  # No resources-finalizer: deleting this app must never tear down the CNI.
+spec:
+  destination:
+    namespace: kube-system
+    server: https://kubernetes.default.svc
+  project: networking
+  source:
+    repoURL: https://github.com/chxmxii/kubegoros.git
+    path: kubernetes/apps/networking/cilium/chart
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      # Never auto-prune CNI resources
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true

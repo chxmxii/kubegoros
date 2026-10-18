@@ -8,3 +8,15 @@
   assert:
     that: ansible_memtotal_mb >= 2048
     fail_msg: "Insufficient memory. A minimum of 2048MB RAM is required to proceed. Current memory: {{ ansible_memtotal_mb }}MB."
+
+# kubelet >= 1.35 refuses to start on cgroup v1 hosts (failCgroupV1 defaults to true).
+# On EL8 enable v2 with: grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=1" && reboot
+- name: Check cgroup version
+  command: stat -fc %T /sys/fs/cgroup
+  register: cgroup_fs
+  changed_when: false
+
+- name: Ensure the node runs cgroup v2
+  assert:
+    that: cgroup_fs.stdout == 'cgroup2fs'
+    fail_msg: "cgroup v1 detected ({{ cgroup_fs.stdout }}). Kubernetes >= 1.35 requires cgroup v2."

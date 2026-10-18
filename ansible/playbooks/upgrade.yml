@@ -1,0 +1,65 @@
+---
+# Upgrade the cluster by exactly ONE minor version per run (kubeadm cannot skip minors):
+#   task cluster:upgrade VERSION=1.30
+#   task cluster:upgrade VERSION=1.31   ... up to 1.37
+# Control planes are upgraded one at a time (initial control plane first), then the workers.
+
+- name: Pre-flight checks
+  hosts: kube_controlplanes[0]
+  become: true
+  gather_facts: false
+  tags: always
+  tasks:
+    - name: Ensure a target minor version was given
+      assert:
+        that:
+          - kube_upgrade_version is defined
+          - kube_upgrade_version is match('^1\.[0-9]+$')
+        fail_msg: "Pass the target minor version, e.g. -e kube_upgrade_version=1.30"
+
+    - name: Get the current API server version
+      command: kubectl --kubeconfig /etc/kubernetes/admin.conf version -o json
+      register: kube_version_json
+      changed_when: false
+
+    - name: Ensure the target is the current or the next minor version
+      vars:
+        current_minor: "{{ (kube_version_json.stdout | from_json).serverVersion.minor | regex_replace('[^0-9]', '') | int }}"
+        target_minor: "{{ kube_upgrade_version.split('.')[1] | int }}"
+      assert:
+        that: (target_minor | int) in [current_minor | int, (current_minor | int) + 1]
+        fail_msg: "Cluster is on 1.{{ current_minor }}; kubeadm can only upgrade to 1.{{ current_minor | int + 1 }} next."
+
+    - name: Ensure all nodes are Ready
+      shell: >
+        kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes --no-headers
+        | awk '$2 !~ /^Ready/ {print $1}'
+      register: not_ready_nodes
+      changed_when: false
+      failed_when: not_ready_nodes.stdout | length > 0
+
+- name: Upgrade control plane nodes
+  hosts: kube_controlplanes
+  become: true
+  serial: 1
+  vars_files:
+    - vars/main.yml
+  vars:
+    kubernetes_version: "{{ kube_upgrade_version }}"
+    kube_admin_node: "{{ groups['kube_controlplanes'][0] }}"
+  tasks:
+    - name: Upgrade node
+      include_tasks: tasks/03-upgrade_node.yml
+
+- name: Upgrade worker nodes
+  hosts: kube_workernodes
+  become: true
+  serial: 1
+  vars_files:
+    - vars/main.yml
+  vars:
+    kubernetes_version: "{{ kube_upgrade_version }}"
+    kube_admin_node: "{{ groups['kube_controlplanes'][0] }}"
+  tasks:
+    - name: Upgrade node
+      include_tasks: tasks/03-upgrade_node.yml

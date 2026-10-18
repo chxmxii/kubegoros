@@ -1,0 +1,22 @@
+{{- $router := index .Values "kubernetes-operator" "cluster" "name" }}
+{{- range .Values.resources }}
+---
+apiVersion: netbird.io/v1alpha1
+kind: NetworkResource
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  networkRouterRef:
+    name: {{ $router }}
+    namespace: {{ $.Release.Namespace }}
+  serviceRef:
+    name: {{ .service }}
+  groups:
+    {{- range .groups }}
+    - name: {{ . }}
+    {{- end }}
+{{- end }}
