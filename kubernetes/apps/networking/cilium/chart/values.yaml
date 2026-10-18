@@ -1,0 +1,74 @@
+# Installed once by ansible (roles/kubeadm) at bootstrap with the CRD-dependent
+# monitoring bits switched off, then adopted and managed by ArgoCD.
+cilium:
+  # kube-proxy is not deployed (kubeadm skipPhases: addon/kube-proxy)
+  kubeProxyReplacement: true
+  # Reach the API server through the HAProxy/keepalived VIP, not the (absent) kube-proxy service
+  k8sServiceHost: 10.254.100.99
+  k8sServicePort: 6443
+
+  ipam:
+    # Use the per-node podCIDRs allocated by kube-controller-manager from kubeadm's podSubnet
+    mode: kubernetes
+
+  routingMode: tunnel
+  tunnelProtocol: vxlan
+
+  operator:
+    replicas: 2
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      trustCRDsExist: true
+
+  dashboards:
+    enabled: true
+    annotations:
+      grafana_folder: Cilium
+
+  hubble:
+    enabled: true
+    tls:
+      auto:
+        # cronJob keeps the certs out of the rendered manifests so ArgoCD doesn't see a diff on every sync
+        method: cronJob
+    metrics:
+      enabled:
+        - dns
+        - drop
+        - tcp
+        - flow
+        - port-distribution
+        - icmp
+        - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
+      serviceMonitor:
+        enabled: true
+      dashboards:
+        enabled: true
+        annotations:
+          grafana_folder: Cilium
+    relay:
+      enabled: true
+      prometheus:
+        enabled: true
+        serviceMonitor:
+          enabled: true
+    ui:
+      enabled: true
+      ingress:
+        enabled: true
+        className: nginx
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt
+        hosts:
+          - hubble.k8s.coralio.co
+        tls:
+          - secretName: hubble-tls
+            hosts:
+              - hubble.k8s.coralio.co

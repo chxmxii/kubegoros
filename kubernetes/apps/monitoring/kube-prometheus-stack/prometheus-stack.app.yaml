@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: monitoring
   source:
-    repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    repoURL: https://github.com/chxmxii/kubegoros.git
     path: kubernetes/apps/monitoring/kube-prometheus-stack/chart
     targetRevision: HEAD
   syncPolicy:

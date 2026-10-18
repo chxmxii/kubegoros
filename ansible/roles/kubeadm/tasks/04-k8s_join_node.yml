@@ -13,9 +13,8 @@
     mode: '0640'
 
 - name: Join node to Kubernetes cluster
-  shell: |
-    kubeadm join \ 
-    --config={{ kubelet_config_root_dir }}/kubeadm-join-config.yml
+  command: >
+    kubeadm join --config={{ kubelet_config_root_dir }}/kubeadm-join-config.yml
   changed_when: false
   when: not kube_node_joined.stat.exists
 

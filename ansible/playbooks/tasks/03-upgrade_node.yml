@@ -1,0 +1,71 @@
+---
+- name: Ensure the node meets the requirements of the target version
+  include_role:
+    name: pre-setup
+    tasks_from: 00-res_assert.yml
+
+- name: Point the Kubernetes repository at the target minor version
+  include_role:
+    name: pre-setup
+    tasks_from: 02-setup_repos.yml
+
+- name: Upgrade kubeadm
+  yum:
+    name: kubeadm
+    state: latest
+    update_cache: true
+    disable_excludes: kubernetes
+
+- name: Get the target kubeadm version
+  command: kubeadm version -o short
+  register: kubeadm_target
+  changed_when: false
+
+- name: Upgrade the control plane (initial control plane)
+  command: kubeadm upgrade apply {{ kubeadm_target.stdout }} --yes
+  when: inventory_hostname == kube_admin_node
+
+- name: Upgrade the node configuration
+  command: kubeadm upgrade node
+  when: inventory_hostname != kube_admin_node
+
+- name: Drain node
+  command: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf drain {{ inventory_hostname }}
+    --ignore-daemonsets --delete-emptydir-data --timeout=15m
+  delegate_to: "{{ kube_admin_node }}"
+
+- name: Upgrade containerd (Kubernetes >= 1.36 requires containerd 2.x)
+  include_role:
+    name: containerd
+  vars:
+    containerd_package_state: latest
+
+- name: Upgrade kubelet and kubectl
+  yum:
+    name:
+      - kubelet
+      - kubectl
+    state: latest
+    disable_excludes: kubernetes
+
+- name: Restart kubelet
+  systemd:
+    name: kubelet
+    state: restarted
+    daemon_reload: true
+
+- name: Wait for the node to report the new version and become Ready
+  shell: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf get node {{ inventory_hostname }}
+    -o jsonpath='{.status.nodeInfo.kubeletVersion} {.status.conditions[?(@.type=="Ready")].status}'
+  register: node_status
+  changed_when: false
+  delegate_to: "{{ kube_admin_node }}"
+  retries: 60
+  delay: 10
+  until: node_status.stdout == kubeadm_target.stdout ~ ' True'
+
+- name: Uncordon node
+  command: kubectl --kubeconfig /etc/kubernetes/admin.conf uncordon {{ inventory_hostname }}
+  delegate_to: "{{ kube_admin_node }}"

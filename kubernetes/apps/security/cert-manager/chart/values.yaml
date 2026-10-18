@@ -1,8 +1,9 @@
 cert-manager:
-  installCRDs: true
+  crds:
+    enabled: true
 
   ingressShim:
-    defaultIssuerName: letsencrypt-stagging
+    defaultIssuerName: letsencrypt
     defaultIssuerKind: ClusterIssuer
 
   # prometheus:

@@ -13,21 +13,25 @@ kame_url: "https://github.com/mehdy/keepalived-exporter/releases/download/v{{ ka
 
 
 # @vars for firewalld config
+# Bare numbers are TCP; use "<port>/udp" for UDP.
+# Cilium: 4240 health, 4244 hubble server, 8472/udp VXLAN.
 controlplane_firewall_ports:
   - 10248
-  - 10249
-  - 9099
+  - 4240
+  - 4244
+  - 8472/udp
   - 2379
   - 2380
   - 10250
   - 6443
-  - 10256
   - 10257
   - 10259
 
 workernode_firewall_ports:
-  - 10259
   - 10250
+  - 4240
+  - 4244
+  - 8472/udp
   - '30000-32767' 
 
 firewall_services:

@@ -14,12 +14,16 @@
       loop:
         - { src: 'root.yaml.j2', dest: '/tmp/argocd/bootstrap/root.yaml' }
         - { src: 'projects.yaml.j2', dest: '/tmp/argocd/bootstrap/projects.yaml' }
-        - { src: 'repo.yaml.j2', dest: '/tmp/argocd/bootstrap/repo.yaml' }
+
+    - name: Deploy ArgoCD private repository credentials
+      template:
+        src: repo.yaml.j2
+        dest: /tmp/argocd/bootstrap/repo.yaml
+      when: git_repo is defined and git_repo.username is defined
 
     - name: Apply ArgoCD Bootstrap Configuration
       command: >
         kubectl apply -f /tmp/argocd/bootstrap/
-      ignore_errors: true
 
   always:
     - name: Clean Bootstrap Directory

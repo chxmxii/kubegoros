@@ -9,7 +9,6 @@
     dest: /etc/hosts
     owner: root
     group: root
-    dest: /etc/hosts
     mode: '0644'
 
 - name: Ensure zram-generator-defaults is absent.

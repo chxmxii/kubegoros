@@ -1,24 +1,3 @@
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   labels:
-#     app.kubernetes.io/component: server
-#     app.kubernetes.io/name: argocd-server
-#     app.kubernetes.io/part-of: argocd
-#   name: argocd-server
-#   namespace: argocd
-# spec:
-#   ports:
-#     - name: http
-#       port: 80
-#       protocol: TCP
-#       targetPort: 8080
-#     - name: https
-#       port: 443
-#       protocol: TCP
-#       targetPort: 8080
-#   selector:
-#     app.kubernetes.io/name: argocd-server
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -27,10 +6,7 @@ metadata:
   namespace: argocd
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
-    kubernetes.io/tls-acme: 'true'
-    nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
-    nginx.ingress.kubernetes.io/backend-protocol: 'HTTPS'
-    nginx.ingress.kubernetes.io/backend-protocol: 'HTTPS'
+    nginx.ingress.kubernetes.io/backend-protocol: HTTPS
 spec:
   ingressClassName: nginx
   rules:
@@ -42,9 +18,9 @@ spec:
             backend:
               service:
                 name: argocd-server
-                port: 
+                port:
                   number: 443
   tls:
     - hosts:
-        - argocd.k8s.coralio.cp
+        - argocd.k8s.coralio.co
       secretName: argocd-tls

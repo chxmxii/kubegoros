@@ -1,0 +1,39 @@
+---
+# DESTRUCTIVE: wipes Kubernetes from every node in kube_cluster.
+- name: Reset Kubernetes Cluster
+  hosts: kube_cluster
+  become: true
+  vars_prompt:
+    - name: confirm_reset
+      prompt: "This destroys the cluster on all nodes. Type 'yes' to continue"
+      private: false
+  tasks:
+    - name: Abort unless confirmed
+      assert:
+        that: confirm_reset == 'yes'
+
+    - name: Reset kubeadm
+      command: kubeadm reset --force
+      changed_when: true
+
+    - name: Remove CNI and kubeconfig leftovers
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/cni/net.d
+        - /var/lib/cni
+        - /run/cilium
+        - /etc/kubernetes
+        - /root/.kube
+
+    - name: Remove Cilium network interfaces
+      command: ip link delete {{ item }}
+      loop: [cilium_host, cilium_net, cilium_vxlan]
+      register: link_delete
+      failed_when: false
+      changed_when: link_delete.rc == 0
+
+    - name: Flush iptables
+      shell: iptables-save | grep -v -E 'KUBE|CILIUM' | iptables-restore
+      changed_when: true
