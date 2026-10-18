@@ -8,4 +8,7 @@ resources:
   - https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
   - https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.8.1/kubernetes/kubernetes.yml
   - postgres.yaml
+  - client-secrets.yaml
   - keycloak.yaml
+  - realm.yaml
+  - networkpolicy.yaml

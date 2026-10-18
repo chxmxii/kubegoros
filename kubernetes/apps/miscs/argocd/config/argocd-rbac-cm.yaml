@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  # Keycloak groups -> ArgoCD roles. Anyone else gets no access.
+  policy.default: ""
+  policy.csv: |
+    g, k8s-admins, role:admin
+    g, k8s-viewers, role:readonly
+  scopes: "[groups]"

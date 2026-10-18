@@ -1,0 +1,27 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: headlamp-oidc
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: vault
+  target:
+    name: headlamp-oidc
+    template:
+      data:
+        OIDC_CLIENT_ID: headlamp
+        OIDC_CLIENT_SECRET: "{{ `{{ .clientSecret }}` }}"
+        OIDC_ISSUER_URL: https://keycloak.lab.chxmxii.xyz/realms/kubegoros
+        OIDC_SCOPES: openid,profile,email,groups
+        OIDC_CALLBACK_URL: https://headlamp.lab.chxmxii.xyz/oidc-callback
+        OIDC_USE_PKCE: "true"
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: keycloak-clients
+        property: headlamp
