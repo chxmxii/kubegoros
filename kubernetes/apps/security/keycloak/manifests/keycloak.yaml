@@ -21,20 +21,14 @@ spec:
       name: keycloak-db-app
       key: password
   hostname:
-    hostname: https://keycloak.k8s.coralio.co
-  # TLS terminates at ingress-nginx; Keycloak serves plain HTTP inside the cluster
+    hostname: https://keycloak.lab.chxmxii.xyz
+  # TLS terminates at the edge Gateway (HTTPRoute "keycloak"); plain HTTP in-cluster
   http:
     httpEnabled: true
   proxy:
     headers: xforwarded
   ingress:
-    enabled: true
-    className: nginx
-    tlsSecret: keycloak-tls
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
-      nginx.ingress.kubernetes.io/backend-protocol: HTTP
-      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+    enabled: false
   resources:
     requests:
       cpu: 250m

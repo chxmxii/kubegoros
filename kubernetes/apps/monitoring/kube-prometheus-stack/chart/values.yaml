@@ -11,24 +11,18 @@ alertmanager:
     replicas: 2
     useExistingSecret: true
     configSecret: alertmanager-config
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
 
+  # Exposed through the edge Gateway (kubernetes/apps/networking/edge), behind Keycloak SSO
   ingress:
-    enabled: true
-
-    ingressClassName: nginx
-
-    annotations:
-      kubernetes.io/tls-acme: "true"
-      cert-manager.io/cluster-issuer: letsencrypt
-
-    hosts:
-      - alerts.k8s.coralio.co
-
-
-    tls:
-      - secretName: alerts-coralio-co-tls
-        hosts:
-          - alerts.k8s.coralio.co
+    enabled: false
 
 nodeExporter:
   enabled: true
@@ -141,75 +135,56 @@ grafana:
   enabled: true
   replicas: 1
 
-  # admin:
-  #   existingSecret: grafana-creds
+  # Login through Keycloak (realm kubegoros, client "grafana").
+  # Group -> role: k8s-admins = Admin, k8s-viewers = Viewer, anyone else is refused.
+  envValueFrom:
+    GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
+      secretKeyRef:
+        name: grafana-oidc
+        key: client-secret
 
-  # env:
-  #   GF_AUTH_GENERIC_OAUTH_API_URL: https://auth.plexmox.com/api/oidc/userinfo
-  #   GF_AUTH_GENERIC_OAUTH_AUTH_URL: https://auth.plexmox.com/api/oidc/authorization
-  #   GF_AUTH_GENERIC_OAUTH_CLIENT_ID: grafana
-  #   GF_AUTH_GENERIC_OAUTH_TOKEN_URL: https://auth.plexmox.com/api/oidc/token
-  #   GF_DATABASE_NAME: grafana
-  #   GF_DATABASE_HOST: mariadb.mariadb.svc:3306
-  #   GF_DATABASE_USER: grafana
-  #   GF_DATABASE_SSL_MODE: disable
-  #   GF_DATABASE_TYPE: mysql
+  grafana.ini:
+    server:
+      root_url: https://grafana.lab.chxmxii.xyz
+    auth:
+      oauth_auto_login: true
+      disable_login_form: true
+    auth.basic:
+      enabled: false
+    auth.generic_oauth:
+      enabled: true
+      name: Keycloak
+      icon: signin
+      client_id: grafana
+      scopes: openid profile email groups
+      empty_scopes: false
+      auth_url: https://keycloak.lab.chxmxii.xyz/realms/kubegoros/protocol/openid-connect/auth
+      token_url: https://keycloak.lab.chxmxii.xyz/realms/kubegoros/protocol/openid-connect/token
+      api_url: https://keycloak.lab.chxmxii.xyz/realms/kubegoros/protocol/openid-connect/userinfo
+      signout_redirect_url: https://keycloak.lab.chxmxii.xyz/realms/kubegoros/protocol/openid-connect/logout?post_logout_redirect_uri=https%3A%2F%2Fgrafana.lab.chxmxii.xyz%2Flogin
+      login_attribute_path: preferred_username
+      name_attribute_path: name
+      email_attribute_path: email
+      groups_attribute_path: groups
+      role_attribute_path: contains(groups[*], 'k8s-admins') && 'Admin' || contains(groups[*], 'k8s-viewers') && 'Viewer'
+      role_attribute_strict: true
+      allow_assign_grafana_admin: true
+      use_pkce: true
+    users:
+      allow_sign_up: false
+      auto_assign_org_role: Viewer
+    security:
+      cookie_secure: true
+      disable_gravatar: true
 
-  # envValueFrom:
-  #   GF_DATABASE_PASSWORD:
-  #     secretKeyRef:
-  #       name: grafana-creds
-  #       key: db_password
-  #   GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET:
-  #     secretKeyRef:
-  #       name: grafana-creds
-  #       key: client_secret
-
-  # grafana.ini:
-  #   server:
-  #     root_url: https://grafana.plexmox.com
-  #   feature_toggles:
-  #     enable: metricsSummary tempoServiceGraph traceToMetrics
-  #   auth:
-  #     oauth_auto_login: true
-  #   auth.basic:
-  #     enabled: true
-  #   auth.generic_oauth:
-  #     enabled: true
-  #     name: Authelia
-  #     icon: signin
-  #     scopes: openid profile email groups
-  #     empty_scopes: false
-  #     login_attribute_path: preferred_username
-  #     groups_attribute_path: groups
-  #     name_attribute_path: name
-  #     use_pkce: true
-  #   auth.generic_oauth.group_mapping:
-  #     org_id: 1
-  #     role_attribute_path: |
-  #       contains(groups[*], 'admin') && 'Admin' || contains(groups[*], 'people') && 'Viewer'
-  ingress:  
+  persistence:
     enabled: true
+    storageClassName: longhorn
+    size: 5Gi
 
-    ingressClassName: nginx
-
-    hosts:
-      - grafana.k8s.coralio.co
-    # hosts: []
-
-    ## Path for grafana ingress
-    path: /
-
-    ## TLS configuration for grafana Ingress
-    ## Secret must be manually created in the namespace
-    ##
-    tls:
-    - secretName: grafana-tls
-      hosts:
-      - grafana.k8s.coralio.co
-
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt
+  # Exposed through the edge Gateway (kubernetes/apps/networking/edge)
+  ingress:
+    enabled: false
 
   # defaultDashboardsEditable: false
 
@@ -223,22 +198,9 @@ grafana:
         maxLines: 1000
 
 prometheus:
+  # Exposed through the edge Gateway, behind Keycloak SSO
   ingress:
-    enabled: true
-
-    ingressClassName: nginx
-
-    annotations:
-      kubernetes.io/tls-acme: "true"
-      cert-manager.io/cluster-issuer: letsencrypt
-
-    hosts:
-      - prometheus.k8s.coralio.co
-
-    tls:
-      - secretName: prometheus-tls
-        hosts:
-          - prometheus.k8s.coralio.co
+    enabled: false
 
   # thanosService:
   #   enabled: true
@@ -255,6 +217,17 @@ prometheus:
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
+
+    retention: 15d
+    retentionSize: 18GB
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: longhorn
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
 
 
 

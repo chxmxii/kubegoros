@@ -6,6 +6,7 @@ resources:
   - grafana
   # - argocd
   - scrapeconfig
+  - sso/grafana-oidc.yaml
 
 patches:
   - path: patches/prometheuses.yaml

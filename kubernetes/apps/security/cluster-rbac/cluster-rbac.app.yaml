@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-rbac
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: security
+  source:
+    path: kubernetes/apps/security/cluster-rbac
+    repoURL: https://github.com/chxmxii/kubegoros.git
+    targetRevision: HEAD
+    directory:
+      exclude: "*.app.yaml"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
