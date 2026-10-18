@@ -7,9 +7,9 @@ sidebar:
 
 Keycloak runs in the `keycloak` namespace, managed by the Keycloak Operator, with its database on a two-instance CloudNativePG cluster. All logins go through one realm, `kubegoros`, at `https://keycloak.lab.chxmxii.xyz/realms/kubegoros`.
 
-## Groups decide access
+## Groups and permissions
 
-There are two groups. Membership is the only thing you manage day to day.
+Access is controlled by membership in two Keycloak groups.
 
 | Group | ArgoCD | Grafana | Kubernetes API, Headlamp | Prometheus, Alertmanager, Longhorn, Hubble |
 |---|---|---|---|---|
@@ -19,13 +19,13 @@ There are two groups. Membership is the only thing you manage day to day.
 
 Tokens carry the groups in a `groups` claim. The Kubernetes API server prefixes them with `oidc:`, so the RBAC subjects are `oidc:k8s-admins` and `oidc:k8s-viewers` (see `kubernetes/apps/security/cluster-rbac`).
 
-## Three ways an app signs you in
+## How each app authenticates
 
-**The app speaks OIDC itself.** ArgoCD, Grafana and Headlamp each have their own Keycloak client and read the `groups` claim directly.
+**Native OIDC.** ArgoCD, Grafana and Headlamp each have their own Keycloak client and read the `groups` claim directly.
 
-**The gateway signs you in.** Prometheus, Alertmanager, Longhorn and Hubble have no login of their own. An Envoy Gateway `SecurityPolicy` on each route runs the OIDC flow with the `edge-proxy` client, verifies the resulting ID token against Keycloak's keys, and only forwards requests whose token has `k8s-admins` in `groups`. Everyone else gets a 403. Logging out is `/oauth2/logout` on the app's hostname.
+**Gateway SSO.** Prometheus, Alertmanager, Longhorn and Hubble have no login of their own. An Envoy Gateway `SecurityPolicy` on each route runs the OIDC flow with the `edge-proxy` client, verifies the resulting ID token against Keycloak's keys, and only forwards requests whose token has `k8s-admins` in `groups`. Everyone else gets a 403. Logging out is `/oauth2/logout` on the app's hostname.
 
-**The API server trusts Keycloak.** kube-apiserver is started with a structured `AuthenticationConfiguration` that accepts Keycloak ID tokens with audience `kubernetes` (kubectl) or `headlamp`. Usernames come from `preferred_username`, prefixed `oidc:`. Headlamp passes the signed-in user's own token to the API, so what you can do in Headlamp is exactly what your RBAC allows.
+**Kubernetes API.** kube-apiserver is started with a structured `AuthenticationConfiguration` that accepts Keycloak ID tokens with audience `kubernetes` (kubectl) or `headlamp`. Usernames come from `preferred_username`, prefixed `oidc:`. Headlamp sends the signed-in user's token to the API, so Headlamp actions are limited by that user's RBAC.
 
 ## Clients
 

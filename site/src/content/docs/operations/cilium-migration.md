@@ -6,18 +6,17 @@ sidebar:
 ---
 
 New clusters get Cilium (with kube-proxy replacement) straight from `task cluster:init`.
-For the **existing** cluster you have two options.
+An existing Calico cluster can be moved in two ways.
 
-## Option A: rebuild (simplest)
+## Option A: rebuild
 
-ArgoCD reconciles every app from git, and Longhorn volumes can be backed up and restored. So for a homelab, the
-cleanest path is `task cluster:reset` and `task cluster:init` with the new roles.
+Every app is redeployed from git and Longhorn volumes can be restored from S3, so rebuilding with `task cluster:reset` and `task cluster:init` is the least work.
 
 ## Option B: in-place, node by node
 
 This follows the upstream guide: <https://docs.cilium.io/en/stable/installation/k8s-install-migration/>.
-Cilium runs alongside Calico on a **separate pod CIDR and VXLAN port** until every node is moved.
-Requirements: cluster on Kubernetes 1.33 or later, `helm` and `cilium` CLI on your workstation.
+Cilium runs alongside Calico, on a separate pod CIDR and VXLAN port, until every node is moved.
+Requirements: Kubernetes 1.33 or later, and the `helm` and `cilium` CLIs on your workstation.
 
 Do this while `root-app` still tracks the old repository (see [Rolling out on the running cluster](/kubegoros/operations/rollout/)), so ArgoCD does not apply the final Cilium config halfway through.
 

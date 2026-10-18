@@ -15,7 +15,7 @@ Longhorn provides block storage on the three workers. Its UI is at `https://long
 | `longhorn-no-backups` | 2 | hourly, kept 24 | none | no | caches, data you can rebuild |
 | `longhorn-crypto` | 2 | hourly, kept 24 | daily, kept 14 | LUKS | credentials, personal data |
 
-Two replicas on three workers survive one node failure and leave a third node free to rebuild on. Replicas of the same volume never share a node.
+With two replicas on three workers, a volume survives the loss of one node and can rebuild on the third. Replicas of a volume are never placed on the same node.
 
 ## What uses it
 
@@ -61,4 +61,4 @@ If the passphrase is lost, every `longhorn-crypto` volume and every backup of on
 
 ## Node drains
 
-`nodeDrainPolicy` is `block-for-eviction-if-contains-last-replica`. A drain waits while a node holds the only healthy replica of a volume, so the upgrade playbook cannot take the last copy of your data offline.
+`nodeDrainPolicy` is `block-for-eviction-if-contains-last-replica`. A drain waits while the node holds the only healthy replica of a volume, so the upgrade playbook cannot take the last copy offline.

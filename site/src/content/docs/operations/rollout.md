@@ -5,7 +5,7 @@ sidebar:
   order: 0
 ---
 
-The running cluster's `root-app` still points at the old GitLab repository. Merging to this repository therefore changes nothing on the cluster until you repoint `root-app`. That is on purpose: the apps here assume Kubernetes 1.34 or later, Cilium and Envoy Gateway. Applying them to a 1.29 cluster on Calico with ingress-nginx would cut its network and every UI.
+The running cluster's `root-app` still points at the old GitLab repository. Changes merged to this repository do not reach the cluster until `root-app` is repointed. The apps here require Kubernetes 1.34 or later, Cilium and Envoy Gateway; applying them to the current 1.29 cluster on Calico and ingress-nginx would break its networking and every UI.
 
 Follow this order.
 

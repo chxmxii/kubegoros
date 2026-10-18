@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-kubegoros has three layers. Each one is owned by exactly one tool, so there is never a question about where to make a change.
+kubegoros has three layers, each managed by one tool.
 
 | Layer | Owned by | Lives in |
 |---|---|---|
@@ -27,7 +27,7 @@ The roles do not support Fedora CoreOS. The OpenTofu code in `proxmox/opentofu` 
 2. installs Cilium from `kubernetes/apps/networking/cilium/chart`, the same chart ArgoCD manages later,
 3. installs ArgoCD and applies the `root-app` Application.
 
-From then on ArgoCD owns Cilium too. Ansible never touches it again.
+After that, ArgoCD manages Cilium like any other app.
 
 ## Apps
 
@@ -42,4 +42,4 @@ From then on ArgoCD owns Cilium too. Ansible never touches it again.
 | `logging/` | loki, vector |
 | `miscs/` | argocd-config |
 
-Sync waves order the first install: Cilium (`-10`), Envoy Gateway and the Gateway API CRDs (`-5`), CloudNativePG and External Secrets (`-1`), then the rest. A custom health check in `argocd-cm` makes ArgoCD wait for each wave's Applications to be Healthy before starting the next one.
+Sync waves order the first install: Cilium (`-10`), Envoy Gateway and the Gateway API CRDs (`-5`), CloudNativePG and External Secrets (`-1`), then the rest. A health check in `argocd-cm` makes ArgoCD wait until each wave's Applications are Healthy before it starts the next wave.

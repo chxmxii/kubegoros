@@ -26,7 +26,7 @@ In the `kubegoros` realm:
 
 At your first login Keycloak asks for a new password and a TOTP authenticator.
 
-## 3. Try every door
+## 3. Check access
 
 | URL | Expect |
 |---|---|

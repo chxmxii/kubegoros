@@ -17,7 +17,7 @@ Cilium is the CNI and replaces kube-proxy. kubeadm is told to skip the kube-prox
 | `routingMode` | `tunnel` (VXLAN, UDP 8472) | Works on any L2 network |
 | `hubble.tls.auto.method` | `cronJob` | Keeps generated certificates out of git diffs |
 
-The ArgoCD Application for Cilium never prunes and has no deletion finalizer. Deleting it by mistake leaves the CNI running.
+The Cilium Application has pruning disabled and no deletion finalizer, so deleting the Application does not remove the CNI.
 
 ## Addresses: MetalLB
 
@@ -26,7 +26,7 @@ MetalLB announces LoadBalancer addresses over L2 from two pools:
 - `block-a`: `10.254.100.205` to `10.254.100.215`
 - `block-b`: `10.254.100.70` to `10.254.100.85`
 
-The edge gateway always takes `10.254.100.205`. Point your DNS records there.
+The edge gateway uses the fixed address `10.254.100.205`.
 
 ## HTTPS: Envoy Gateway
 
@@ -53,6 +53,6 @@ The `cert-manager.io/cluster-issuer: letsencrypt` annotation on the Gateway make
 
 ## Remote access: NetBird
 
-The NetBird operator runs two routing peers in the `netbird` namespace. They publish the edge gateway's Service as a NetBird network resource, so any peer in the `homelab-admins` NetBird group can reach every hostname above from anywhere, without opening ports on your router.
+The NetBird operator runs two routing peers in the `netbird` namespace. They publish the edge gateway's Service as a NetBird network resource, so peers in the `homelab-admins` NetBird group can reach the hostnames above without any ports opened on the router.
 
 Setup steps are in [Secrets and first-time setup](/kubegoros/getting-started/secrets/).

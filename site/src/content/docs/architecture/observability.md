@@ -42,4 +42,4 @@ cilium hubble port-forward &
 hubble observe --namespace keycloak --verdict DROPPED
 ```
 
-Dropped flows are the first thing to check after adding a NetworkPolicy.
+After adding a NetworkPolicy, check for dropped flows.

@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-Git holds no secrets. Every credential lives in Vault (KV version 1, mount `secret`) and is copied into the cluster by External Secrets through the `vault` ClusterSecretStore.
+No secrets are stored in git. Credentials are stored in Vault (KV version 1, mount `secret`) and is copied into the cluster by External Secrets through the `vault` ClusterSecretStore.
 
 ## Seed Vault
 

@@ -1,46 +1,41 @@
 ---
-title: Homelab Kubernetes from git
-description: A kubeadm homelab cluster run from git. Ansible builds the nodes, ArgoCD runs everything on top.
+title: kubegoros
+description: Kubernetes homelab cluster built with Ansible and kubeadm, with every app managed by ArgoCD.
 template: splash
 tableOfContents: false
 editUrl: false
 lastUpdated: false
+head:
+  - tag: title
+    content: kubegoros documentation
 ---
 
-import Architecture from '../../components/Architecture.astro';
+import { Image } from 'astro:assets';
+import arch from '../../assets/arch.png';
 
 <div class="kg-hero">
-  <div>
-    <h1>A homelab cluster you rebuild from git</h1>
-    <p>Ansible turns six VMs into a Kubernetes 1.37 cluster. ArgoCD installs everything else from this repository.</p>
-    <div class="kg-actions">
-      <a class="kg-btn kg-btn-primary" href="getting-started/requirements/">Build a cluster</a>
-      <a class="kg-btn kg-btn-ghost" href="architecture/overview/">How it fits together</a>
-    </div>
+  <h1>Kubernetes homelab managed with Ansible and ArgoCD</h1>
+  <p>Ansible installs Kubernetes 1.37 on six VMs. ArgoCD deploys everything else from this repository.</p>
+  <div class="kg-actions">
+    <a class="kg-btn kg-btn-primary" href="getting-started/requirements/">Get started</a>
+    <a class="kg-btn kg-btn-ghost" href="architecture/overview/">Architecture</a>
   </div>
-  <Architecture />
 </div>
+
+<a class="kg-arch" href={arch.src}>
+  <Image src={arch} alt="kubegoros architecture: three control planes behind two HAProxy load balancers, three workers, and ArgoCD syncing the apps from git" />
+</a>
 
 <div class="kg-layers">
   <div>
-    <h2>What runs where</h2>
-    <p>Every component below lives in <code>kubernetes/apps</code> as an ArgoCD Application. Nodes are the only thing configured outside git.</p>
+    <h2>Components</h2>
+    <p>Each component is an ArgoCD Application under <code>kubernetes/apps</code>. Only the nodes are configured outside git.</p>
   </div>
   <dl>
-    <dt>network</dt><dd>Cilium with kube-proxy replacement, MetalLB for addresses, Envoy Gateway for HTTPS, NetBird for remote access.</dd>
-    <dt>identity</dt><dd>Keycloak is the single login for ArgoCD, Grafana, Headlamp, kubectl and every dashboard without its own auth.</dd>
-    <dt>storage</dt><dd>Longhorn with two replicas, hourly snapshots, daily backups to S3 and an encrypted storage class.</dd>
-    <dt>signals</dt><dd>Prometheus and Grafana for metrics, Vector and Loki for logs, Hubble for network flows.</dd>
-    <dt>secrets</dt><dd>Vault holds them, External Secrets copies them in. Nothing secret is committed.</dd>
+    <dt>network</dt><dd>Cilium (no kube-proxy), MetalLB, Envoy Gateway, NetBird</dd>
+    <dt>identity</dt><dd>Keycloak, used by ArgoCD, Grafana, Headlamp, kubectl and the gateway</dd>
+    <dt>storage</dt><dd>Longhorn with snapshots, S3 backups and an encrypted storage class</dd>
+    <dt>monitoring</dt><dd>Prometheus, Grafana, Loki, Vector, Hubble</dd>
+    <dt>secrets</dt><dd>Vault, synced into the cluster by External Secrets</dd>
   </dl>
-</div>
-
-<div class="kg-flow">
-  <h2>How a change reaches the cluster</h2>
-  <ol>
-    <li><strong>Edit</strong><span>Change a values file or manifest under <code>kubernetes/apps</code>.</span></li>
-    <li><strong>Merge</strong><span>Renovate opens version bumps the same way, as pull requests.</span></li>
-    <li><strong>Sync</strong><span>ArgoCD notices the new commit and applies it in sync-wave order.</span></li>
-    <li><strong>Heal</strong><span>Manual drift is reverted. Git stays the source of truth.</span></li>
-  </ol>
 </div>

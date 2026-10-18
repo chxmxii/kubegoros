@@ -55,11 +55,8 @@ body:has(.kg-hero) .content-panel { border-top: 0; }
 
 /* Landing page */
 .kg-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: 3rem;
-  align-items: center;
   padding-block: 1.5rem 2rem;
+  max-width: 44rem;
 }
 .kg-hero h1 {
   font-size: clamp(2rem, 4vw, 3.1rem);
@@ -69,7 +66,7 @@ body:has(.kg-hero) .content-panel { border-top: 0; }
   margin: 0;
   color: var(--sl-color-white);
 }
-.kg-hero p { font-size: 1.1rem; color: var(--sl-color-gray-2); max-width: 34ch; margin-top: 1rem; }
+.kg-hero p { font-size: 1.1rem; color: var(--sl-color-gray-2); max-width: 52ch; margin-top: 1rem; }
 .kg-hero .kg-actions { display: flex; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap; }
 .kg-btn {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -85,19 +82,15 @@ body:has(.kg-hero) .content-panel { border-top: 0; }
 .kg-btn-ghost { border: 1px solid var(--sl-color-gray-5); color: var(--sl-color-white); }
 .kg-btn-ghost:hover { border-color: var(--sl-color-accent); color: var(--sl-color-white); }
 
+.kg-arch { display: block; margin-top: 1rem; }
+.kg-arch img { width: 100%; height: auto; border-radius: var(--kg-radius); border: 1px solid var(--sl-color-gray-5); }
+
 .kg-layers { display: grid; grid-template-columns: 2fr 3fr; gap: 2.5rem; margin-top: 3rem; }
 .kg-layers dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: .9rem 1.5rem; align-items: baseline; }
 .kg-layers dt { font-family: var(--sl-font-mono); font-size: var(--sl-text-sm); color: var(--sl-color-accent-high); }
 :root[data-theme='light'] .kg-layers dt { color: var(--sl-color-accent); }
 .kg-layers dd { margin: 0; color: var(--sl-color-gray-2); }
 
-.kg-flow { margin-top: 3.5rem; padding: 1.75rem; border-radius: var(--kg-radius); background: var(--sl-color-gray-6); }
-.kg-flow ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; margin: 1rem 0 0; padding: 0; list-style: none; counter-reset: s; }
-.kg-flow li { counter-increment: s; }
-.kg-flow li strong { display: block; color: var(--sl-color-white); margin-bottom: .25rem; }
-.kg-flow li span { color: var(--sl-color-gray-2); font-size: var(--sl-text-sm); }
-
 @media (max-width: 50rem) {
-  .kg-hero, .kg-layers { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
-  .kg-flow ol { grid-template-columns: 1fr; }
+  .kg-layers { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
 }

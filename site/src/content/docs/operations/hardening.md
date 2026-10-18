@@ -32,7 +32,7 @@ Set by `ansible/roles/kubeadm`. New clusters get it at `task cluster:init`. Exis
 | Kubelet | read-only port off, anonymous auth off, webhook authorization, `RuntimeDefault` seccomp for every pod |
 | Bootstrap tokens | deleted after the nodes join |
 
-`task cluster:harden` also rewrites every existing Secret so it is stored encrypted, then reads one back from etcd to prove it.
+`task cluster:harden` also rewrites every existing Secret so it is stored encrypted, then checks in etcd that a test Secret is encrypted.
 
 :::note
 Kubelet settings only apply to nodes that join after the change. Existing nodes keep their kubelet config until they are rejoined.

@@ -39,7 +39,7 @@ On the first control plane, `kubeadm init` starts Kubernetes 1.37 with:
 
 It then installs Cilium and ArgoCD and applies `root-app`. The other control planes and the workers join after that.
 
-The ArgoCD `admin` password is random and written to `.secrets/argocd-admin-password`. Keep it as break-glass access for when Keycloak is down.
+The ArgoCD `admin` password is random and written to `.secrets/argocd-admin-password`. Use it when Keycloak is unavailable.
 
 ## 4. Watch ArgoCD sync
 
@@ -47,7 +47,7 @@ The ArgoCD `admin` password is random and written to `.secrets/argocd-admin-pass
 kubectl -n argocd get applications -w
 ```
 
-The first full sync takes a while: waves wait for the earlier ones to be Healthy, and certificates need DNS and port 80 in place. Apps that need Vault secrets stay Degraded until [the secrets exist](/kubegoros/getting-started/secrets/).
+The first sync is slow: each wave waits for the previous one to be Healthy, and certificates need DNS and port 80 in place. Apps that need Vault secrets stay Degraded until [the secrets exist](/kubegoros/getting-started/secrets/).
 
 ## 5. Check it
 
