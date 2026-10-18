@@ -1,65 +1,65 @@
 ---
 - name: Check if Kubernetes has already been initialized
-  stat:
+  ansible.builtin.stat:
     path: "{{ kubelet_config_root_dir }}/admin.conf"
   register: kube_init_check
 
+- name: Write control plane security configuration
+  ansible.builtin.include_tasks: 05-controlplane_security.yml
+
 - name: Copy initial Kubernetes configuration template
-  template:
+  ansible.builtin.template:
     src: "kubeadm-init-config.yml.j2"
     dest: "{{ kubelet_config_root_dir }}/kubeadm-config.yml"
     owner: root
     group: root
-    mode: '0640'
+    mode: "0600"
 
 - name: Initialize Kubernetes control plane with kubeadm init
-  shell: |
-    kubeadm init --config={{ kubelet_config_root_dir }}/kubeadm-config.yml
+  ansible.builtin.command: kubeadm init --config={{ kubelet_config_root_dir }}/kubeadm-config.yml
   register: kubeadm_init_output
-  when: not kube_init_check.stat.exists
-
-- name: Debug initialization logs
-  debug:
-    var: kubeadm_init_output.stdout
+  changed_when: true
   when: not kube_init_check.stat.exists
 
 - name: Ensure .kube directory exists
-  file:
+  ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.kube"
     state: directory
-    mode: '0755'
+    mode: "0700"
 
 - name: Create symlink for kubectl admin.conf in .kube directory
-  file:
+  ansible.builtin.file:
     src: "{{ kubelet_config_root_dir }}/admin.conf"
     dest: "{{ ansible_env.HOME }}/.kube/config"
     state: link
-    mode: '0640'
 
 - name: Install Helm
-  include_role:
+  ansible.builtin.include_role:
     name: gitops
     tasks_from: 00-install_helm.yml
 
 - name: Copy Cilium chart to the control plane
-  copy:
+  ansible.builtin.copy:
     src: "{{ kube_cni_cilium_chart }}/"
     dest: /tmp/cilium-chart/
-    mode: '0644'
+    mode: "0644"
 
 - name: Install Cilium CNI
-  shell: |
+  ansible.builtin.shell: |
+    set -o pipefail
     helm dependency update /tmp/cilium-chart
     helm upgrade --install cilium /tmp/cilium-chart \
       --namespace kube-system \
       {% for o in kube_cni_cilium_bootstrap_overrides %}--set {{ o }} {% endfor %}\
       --wait --timeout 10m
+  args:
+    executable: /usr/bin/bash
   environment:
     KUBECONFIG: "{{ kubelet_config_root_dir }}/admin.conf"
   register: cilium_result
-  changed_when: "'has been upgraded' in cilium_result.stdout or 'STATUS: deployed' in cilium_result.stdout"
+  changed_when: "'REVISION: 1' in cilium_result.stdout"
 
 - name: Clean Cilium chart
-  file:
+  ansible.builtin.file:
     path: /tmp/cilium-chart
     state: absent

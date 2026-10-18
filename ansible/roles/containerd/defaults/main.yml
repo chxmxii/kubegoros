@@ -16,7 +16,6 @@ containerd_config_default_write: true
 # Must match the kubelet cgroupDriver (systemd, see roles/kubeadm).
 containerd_config_cgroup_driver_systemd: true
 
-# Docker repo config for centos (will change later for battlerocketos)
-docker_yum_repo_url: https://download.docker.com/linux/{{ (ansible_distribution == "Fedora") | ternary("fedora","centos") }}/docker-ce.repo
-docker_yum_repo_enable_nightly: '0'
-docker_yum_gpg_key: https://download.docker.com/linux/centos/gpg
+# Docker CE repository (provides containerd.io)
+docker_yum_base_url: "https://download.docker.com/linux/{{ (ansible_distribution == 'Fedora') | ternary('fedora', 'rhel') }}/$releasever/$basearch/stable"
+docker_yum_gpg_key: "https://download.docker.com/linux/{{ (ansible_distribution == 'Fedora') | ternary('fedora', 'rhel') }}/gpg"

@@ -1,104 +1,54 @@
-#Task for argocd configuration
 ---
-- name: Patch ArgoCD service to NodePort
-  k8s:
-    state: present
-    definition:
-      apiVersion: v1
-      kind: Service
-      metadata:
-        name: argocd-server
-        namespace: "{{ argocd_namespace }}"
-      spec:
-        type: NodePort
-
-- name: Get HTTPS NodePort
-  k8s_info:
-    kind: Service
-    name: argocd-server
+# Sets the admin password to a random value stored in .secrets/argocd-admin-password on the
+# ansible controller. A sha256 annotation makes this idempotent (bcrypt hashes are salted).
+- name: Read the current admin password marker
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: argocd-secret
     namespace: "{{ argocd_namespace }}"
-  register: argocd_service
+  register: argocd_secret
 
-- name: Set HTTPS NodePort fact
-  set_fact:
-    argocd_https_server_nodeport: "{{ argocd_service.resources[0].spec.ports | selectattr('name', 'equalto', 'https') | map(attribute='nodePort') | first }}"
+- name: Set the ArgoCD admin password
+  when: >-
+    (argocd_secret.resources[0].metadata.annotations | default({})).get('kubegoros/admin-password-sha256')
+    != (argocd_admin_password | hash('sha256'))
+  block:
+    - name: Hash the admin password
+      ansible.builtin.command:
+        argv:
+          - "{{ argocd_binary_path }}/argocd"
+          - account
+          - bcrypt
+          - --password
+          - "{{ argocd_admin_password }}"
+      register: argocd_admin_bcrypt
+      changed_when: false
+      no_log: true
 
-- name: Get the node name where ArgoCD server is running
-  shell: >
-    kubectl get pods -n {{ argocd_namespace }} -ojson | \
-    jq -r '.items[] | select(.metadata.name | test("^argocd-server")).spec.nodeName'
-  register: argocd_pods
+    - name: Patch argocd-secret with the new admin password
+      kubernetes.core.k8s:
+        state: patched
+        kind: Secret
+        name: argocd-secret
+        namespace: "{{ argocd_namespace }}"
+        definition:
+          metadata:
+            annotations:
+              kubegoros/admin-password-sha256: "{{ argocd_admin_password | hash('sha256') }}"
+          stringData:
+            admin.password: "{{ argocd_admin_bcrypt.stdout }}"
+            admin.passwordMtime: "{{ now(utc=true).strftime('%Y-%m-%dT%H:%M:%SZ') }}"
+      no_log: true
 
-- name: Set node where ArgoCD server is running fact
-  set_fact:
-    argocd_server_node: "{{ argocd_pods.stdout }}"
-
-- name: Get initial admin password
-  k8s_info:
+- name: Remove the initial admin secret
+  kubernetes.core.k8s:
+    state: absent
     api_version: v1
     kind: Secret
     name: argocd-initial-admin-secret
     namespace: "{{ argocd_namespace }}"
-  register: argocd_init_secret
 
-- name: Set initial admin password fact
-  set_fact:
-    argocd_initial_password: "{{ argocd_init_secret.resources[0].data.password | b64decode }}"
-
-- name: Change ArgoCD  admin password
-  block:
-    - name: Login to ArgoCD
-      uri:
-        url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/session"
-        method: POST
-        body_format: json
-        headers:
-          Content-Type: "application/json"
-        body:
-          username: admin
-          password: "{{ argocd_initial_password }}"
-        return_content: yes
-        status_code: 200
-        validate_certs: no
-      register: login_response
-      changed_when: false
-
-    - name: Extract and set argocd token fact from login response
-      set_fact:
-        argocd_token: "{{ login_response.json.token }}"
-
-    - name: Change initial admin password
-      uri:
-        url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/account/password"
-        method: PUT
-        body_format: json
-        headers:
-          Authorization: "Bearer {{ argocd_token }}"
-        body:
-          currentPassword: "{{ argocd_initial_password }}"
-          newPassword: "{{ argocd_new_password }}"
-        status_code: 200
-        validate_certs: no
-      changed_when: false
-    
-  rescue: 
-
-    - name: Debug fail message
-      debug:
-        msg: "Failed to change ArgoCD initial admin password. Attempting to login with the new password..."
-
-    - name: Login to ArgoCD
-      uri:
-        url: "https://{{ argocd_server_node }}:{{ argocd_https_server_nodeport }}/api/v1/session"
-        method: POST
-        body_format: json
-        headers:
-          Content-Type: "application/json"
-        body:
-          username: admin
-          password: "{{ argocd_new_password }}"
-        return_content: yes
-        status_code: 200
-        validate_certs: no
-      register: login_response
-      changed_when: false
+- name: Show where the admin password is stored
+  ansible.builtin.debug:
+    msg: "ArgoCD admin password: {{ argocd_admin_password_file | realpath }} (on the ansible controller)"

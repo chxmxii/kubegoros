@@ -1,0 +1,84 @@
+---
+# Audit policy, encryption at rest and structured authentication for kube-apiserver.
+# Used by kubeadm init/join and by playbooks/harden-controlplane.yml.
+- name: Ensure control plane security directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  loop:
+    - "{{ kube_audit_policy_dir }}"
+    - "{{ kube_audit_log_dir }}"
+    - "{{ kube_encryption_config_dir }}"
+    - "{{ kube_authn_config_dir }}"
+
+- name: Write the audit policy
+  ansible.builtin.template:
+    src: audit-policy.yaml.j2
+    dest: "{{ kube_audit_policy_dir }}/policy.yaml"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Write the structured authentication configuration
+  ansible.builtin.template:
+    src: authentication-config.yaml.j2
+    dest: "{{ kube_authn_config_dir }}/config.yaml"
+    owner: root
+    group: root
+    mode: "0600"
+  when: kube_oidc_enabled | bool
+
+- name: Check for an existing encryption configuration on the admin node
+  ansible.builtin.stat:
+    path: "{{ kube_encryption_config_dir }}/config.yaml"
+  register: kube_encryption_config
+  delegate_to: "{{ kube_admin_node }}"
+  run_once: true
+
+- name: Generate the encryption configuration once
+  when: not kube_encryption_config.stat.exists
+  block:
+    - name: Generate a 32-byte encryption key
+      ansible.builtin.shell: |
+        set -o pipefail
+        head -c 32 /dev/urandom | base64
+      args:
+        executable: /usr/bin/bash
+      register: kube_encryption_key_result
+      changed_when: true
+      delegate_to: "{{ kube_admin_node }}"
+      run_once: true
+      no_log: true
+
+    - name: Write the encryption configuration on the admin node
+      ansible.builtin.template:
+        src: encryption-config.yaml.j2
+        dest: "{{ kube_encryption_config_dir }}/config.yaml"
+        owner: root
+        group: root
+        mode: "0600"
+      vars:
+        kube_encryption_key: "{{ kube_encryption_key_result.stdout }}"
+      delegate_to: "{{ kube_admin_node }}"
+      run_once: true
+      no_log: true
+
+- name: Read the encryption configuration from the admin node
+  ansible.builtin.slurp:
+    src: "{{ kube_encryption_config_dir }}/config.yaml"
+  register: kube_encryption_config_content
+  delegate_to: "{{ kube_admin_node }}"
+  run_once: true
+  no_log: true
+
+- name: Distribute the encryption configuration
+  ansible.builtin.copy:
+    dest: "{{ kube_encryption_config_dir }}/config.yaml"
+    content: "{{ kube_encryption_config_content.content | b64decode }}"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true

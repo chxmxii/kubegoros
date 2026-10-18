@@ -1,0 +1,53 @@
+---
+# Read-only smoke test of a running cluster.
+- name: Verify the cluster
+  hosts: kube_controlplanes[0]
+  become: true
+  gather_facts: false
+  vars:
+    kubectl: kubectl --kubeconfig /etc/kubernetes/admin.conf
+  tasks:
+    - name: Ensure all nodes are Ready
+      ansible.builtin.shell: |
+        set -o pipefail
+        {{ kubectl }} get nodes --no-headers | awk '$2 !~ /^Ready/ {print $1}'
+      args:
+        executable: /usr/bin/bash
+      register: not_ready
+      changed_when: false
+      failed_when: not_ready.stdout | length > 0
+
+    - name: Ensure the Cilium agents are ready
+      ansible.builtin.command: >
+        {{ kubectl }} -n kube-system rollout status daemonset/cilium --timeout=120s
+      changed_when: false
+
+    - name: Ensure kube-system pods are healthy
+      ansible.builtin.shell: |
+        set -o pipefail
+        {{ kubectl }} -n kube-system get pods --no-headers | awk '$3 !~ /^(Running|Completed)$/ {print $1" "$3}'
+      args:
+        executable: /usr/bin/bash
+      register: bad_pods
+      changed_when: false
+      failed_when: bad_pods.stdout | length > 0
+
+    - name: Ensure the API server rejects anonymous requests outside the health endpoints
+      ansible.builtin.uri:
+        url: https://127.0.0.1:6443/api/v1/namespaces
+        validate_certs: false
+        status_code: [401, 403]
+
+    - name: List ArgoCD applications that are not Synced and Healthy
+      ansible.builtin.shell: |
+        set -o pipefail
+        {{ kubectl }} -n argocd get applications --no-headers \
+          | awk '$2 != "Synced" || $3 != "Healthy" {print $1" "$2" "$3}'
+      args:
+        executable: /usr/bin/bash
+      register: argo_apps
+      changed_when: false
+
+    - name: Report ArgoCD application status
+      ansible.builtin.debug:
+        msg: "{{ argo_apps.stdout_lines if argo_apps.stdout_lines else 'All ArgoCD applications are Synced and Healthy' }}"

@@ -1,5 +1,5 @@
-# defaults file for kubeadm
 ---
+# defaults file for kubeadm
 
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
 kube_version_kubeadm: "1.37.1"
@@ -8,7 +8,10 @@ kubelet_config_root_dir: "/etc/kubernetes"
 
 kube_apiserver_advertise_address: ""
 
-kube_cluster_extlb: "{{ vip_address }}"  
+kube_cluster_extlb: "{{ vip_address }}"
+
+# Host that runs `kubeadm init` and every cluster-wide kubectl action
+kube_admin_node: "{{ groups['kube_controlplanes'][0] }}"
 
 # Cilium is installed from the same wrapper chart ArgoCD later adopts (kubernetes/apps/networking/cilium/chart)
 kube_cni_cilium_chart: "{{ playbook_dir }}/../../kubernetes/apps/networking/cilium/chart"
@@ -23,9 +26,79 @@ kube_cni_cilium_bootstrap_overrides:
 kube_cluster_node_name: "{{ inventory_hostname }}"
 
 kube_cluster_initial_controlplane: false
-#-------------------------
+
+# ------------------------
+# Control plane hardening
+# ------------------------
+kube_audit_policy_dir: /etc/kubernetes/audit
+kube_audit_log_dir: /var/log/kubernetes/audit
+kube_audit_log_maxage: 30
+kube_audit_log_maxbackup: 10
+kube_audit_log_maxsize: 100
+
+# Secrets are encrypted at rest with secretbox; the key is generated once on kube_admin_node
+kube_encryption_config_dir: /etc/kubernetes/encryption
+
+# Structured authentication: Keycloak OIDC for kubectl (kubelogin) and Headlamp
+kube_oidc_enabled: true
+kube_authn_config_dir: /etc/kubernetes/authn
+kube_oidc_issuer_url: https://keycloak.lab.chxmxii.xyz/realms/kubegoros
+kube_oidc_audiences:
+  - kubernetes
+  - headlamp
+kube_oidc_username_claim: preferred_username
+kube_oidc_username_prefix: "oidc:"
+kube_oidc_groups_claim: groups
+kube_oidc_groups_prefix: "oidc:"
+# PEM bundle for the issuer when it is not signed by a public CA (empty = system trust store)
+kube_oidc_issuer_ca: ""
+# Anonymous requests are only allowed on these paths. cluster-info is read anonymously by `kubeadm join`.
+kube_anonymous_paths:
+  - /livez
+  - /readyz
+  - /healthz
+  - /api/v1/namespaces/kube-public/configmaps/cluster-info
+
+kube_apiserver_extra_args: >-
+  {{ [
+       {'name': 'audit-policy-file', 'value': kube_audit_policy_dir ~ '/policy.yaml'},
+       {'name': 'audit-log-path', 'value': kube_audit_log_dir ~ '/audit.log'},
+       {'name': 'audit-log-maxage', 'value': kube_audit_log_maxage | string},
+       {'name': 'audit-log-maxbackup', 'value': kube_audit_log_maxbackup | string},
+       {'name': 'audit-log-maxsize', 'value': kube_audit_log_maxsize | string},
+       {'name': 'encryption-provider-config', 'value': kube_encryption_config_dir ~ '/config.yaml'},
+       {'name': 'profiling', 'value': 'false'},
+       {'name': 'tls-min-version', 'value': 'VersionTLS12'},
+     ]
+     + ([{'name': 'authentication-config', 'value': kube_authn_config_dir ~ '/config.yaml'}] if kube_oidc_enabled | bool else []) }}
+
+kube_apiserver_extra_volumes: >-
+  {{ [
+       {'name': 'audit-policy', 'hostPath': kube_audit_policy_dir, 'mountPath': kube_audit_policy_dir,
+        'readOnly': true, 'pathType': 'DirectoryOrCreate'},
+       {'name': 'audit-log', 'hostPath': kube_audit_log_dir, 'mountPath': kube_audit_log_dir,
+        'readOnly': false, 'pathType': 'DirectoryOrCreate'},
+       {'name': 'encryption-config', 'hostPath': kube_encryption_config_dir, 'mountPath': kube_encryption_config_dir,
+        'readOnly': true, 'pathType': 'DirectoryOrCreate'},
+     ]
+     + ([{'name': 'authn-config', 'hostPath': kube_authn_config_dir, 'mountPath': kube_authn_config_dir,
+          'readOnly': true, 'pathType': 'DirectoryOrCreate'}] if kube_oidc_enabled | bool else []) }}
+
+# bind-address 0.0.0.0 lets Prometheus scrape the controller-manager and scheduler
+kube_controller_manager_extra_args:
+  - name: bind-address
+    value: "0.0.0.0"
+  - name: profiling
+    value: "false"
+kube_scheduler_extra_args:
+  - name: bind-address
+    value: "0.0.0.0"
+  - name: profiling
+    value: "false"
+
+# ------------------------
 # kubeadm j2 template
-#-------------------------
+# ------------------------
 kube_cfg_init_conf:
   # Cilium runs with kubeProxyReplacement, so kube-proxy is never deployed
   skipPhases:
@@ -42,27 +115,47 @@ kube_cfg_cluster_conf:
     serviceSubnet: 10.96.0.0/16
     dnsDomain: cluster.local
   kubernetesVersion: "{{ kube_version_kubeadm }}"
-  controlPlaneEndpoint: "{{ kube_cluster_extlb | default(hostvars[inventory_hostname]['ansible_facts']['default_ipv4']['address']) }}:6443"
+  controlPlaneEndpoint: "{{ kube_cluster_extlb | default(ansible_default_ipv4['address'], true) }}:6443"
+  apiServer:
+    extraArgs: "{{ kube_apiserver_extra_args }}"
+    extraVolumes: "{{ kube_apiserver_extra_volumes }}"
   controllerManager:
-    extraArgs:
-      - name: bind-address
-        value: "0.0.0.0"
+    extraArgs: "{{ kube_controller_manager_extra_args }}"
   scheduler:
-    extraArgs:
-      - name: bind-address
-        value: "0.0.0.0"
+    extraArgs: "{{ kube_scheduler_extra_args }}"
 
 kube_cfg_join_conf:
   nodeRegistration:
     name: "{{ kube_cluster_node_name }}"
   discovery:
     bootstrapToken:
-      token: "{{ kube_cluster_join_token }}"  
+      token: "{{ kube_cluster_join_token }}"
       apiServerEndpoint: "{{ kube_cluster_api_server_ip }}:{{ kube_cfg_init_conf.localAPIEndpoint.bindPort }}"
       caCertHashes:
         - "sha256:{{ kube_cluster_root_ca_hash }}"
       unsafeSkipCAVerification: false
 
+# Extra JoinConfiguration section for control-plane nodes (certificates are copied by ansible)
+kube_cfg_join_controlplane_conf:
+  controlPlane:
+    localAPIEndpoint:
+      advertiseAddress: "{{ kube_apiserver_advertise_address | default(ansible_default_ipv4['address'], true) }}"
+      bindPort: 6443
+
 kube_cfg_kubelet_conf:
-  cgroupDriver: "systemd"
+  cgroupDriver: systemd
   failSwapOn: false
+  readOnlyPort: 0
+  protectKernelDefaults: true
+  seccompDefault: true
+  rotateCertificates: true
+  tlsMinVersion: VersionTLS12
+  authentication:
+    anonymous:
+      enabled: false
+    webhook:
+      enabled: true
+    x509:
+      clientCAFile: /etc/kubernetes/pki/ca.crt
+  authorization:
+    mode: Webhook

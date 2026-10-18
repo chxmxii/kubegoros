@@ -1,9 +1,30 @@
 ---
-- name: Download Kustomize 
-  unarchive:
-    remote_src: true
-    src: "{{ k7e_core_download }}"
-    dest: "{{ k7e_binary_path }}"
-    owner: root
-    group: root
-    mode: 0755
+- name: Get the installed Kustomize version
+  ansible.builtin.command: "{{ k7e_binary_path }}/kustomize version"
+  changed_when: false
+  failed_when: false
+  register: existing_k7e_version
+
+- name: Install Kustomize
+  when: existing_k7e_version.rc != 0 or ('v' ~ k7e_version) not in existing_k7e_version.stdout
+  block:
+    - name: Download Kustomize
+      ansible.builtin.get_url:
+        url: "{{ k7e_core_download }}"
+        dest: "/tmp/{{ k7e_archive }}"
+        checksum: "{{ k7e_checksum }}"
+        mode: "0644"
+
+    - name: Extract Kustomize
+      ansible.builtin.unarchive:
+        remote_src: true
+        src: "/tmp/{{ k7e_archive }}"
+        dest: "{{ k7e_binary_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+  always:
+    - name: Remove the Kustomize archive
+      ansible.builtin.file:
+        path: "/tmp/{{ k7e_archive }}"
+        state: absent

@@ -1,27 +1,23 @@
 ---
 # tasks file for kubeadm
-- name: ensure kubelet is started and enabled at boot
-  systemd:
+- name: Ensure kubelet is enabled at boot
+  ansible.builtin.systemd_service:
     name: kubelet
-    state: started
     enabled: true
 
 - name: Configure controlplane nodes
-  include_tasks: 01-k8s_masters_config.yml
+  ansible.builtin.include_tasks: 01-k8s_masters_config.yml
   when: kube_cluster_node_type == 'master'
 
 - name: Join workers
-  include_tasks: 04-k8s_join_node.yml
+  ansible.builtin.include_tasks: 04-k8s_join_node.yml
   when: kube_cluster_node_type == 'worker'
 
-- name: Label Kubernetes controlplane nodes
-  shell: |
-    kubectl label node {{ kube_cluster_node_name }} node-role.kubernetes.io/control-plane=
-  delegate_to: "{{ kube_cluster_init_main_node_name  }}"
-  when: kube_cluster_node_name in groups['kube_controlplanes']
-
 - name: Label kubernetes worker nodes
-  shell: |
-    kubectl label node {{ kube_cluster_node_name }}  node-role.kubernetes.io/worker=
-  delegate_to: "{{ kube_cluster_init_main_node_name }}"
-  when: kube_cluster_node_name in groups['kube_workernodes'] 
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubelet_config_root_dir }}/admin.conf
+    label node {{ kube_cluster_node_name }} node-role.kubernetes.io/worker= --overwrite
+  register: kube_label_result
+  changed_when: "'not labeled' not in kube_label_result.stdout"
+  delegate_to: "{{ kube_admin_node }}"
+  when: kube_cluster_node_name in groups['kube_workernodes']
