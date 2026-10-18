@@ -1,6 +1,15 @@
-#This role is part of the coral-io cluster template
-
+---
 galaxy_info:
-  author: chxmxii 
-  email: chamsii.mouhib@gmail.com 
-  company: CORAL-IO 
+  role_name: gitops
+  namespace: kubegoros
+  author: chxmxii
+  description: "Installs Helm, Kustomize and ArgoCD and bootstraps the app-of-apps"
+  company: CORAL-IO
+  license: See LICENSE.md in the repository root
+  min_ansible_version: "2.17"
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+dependencies: []

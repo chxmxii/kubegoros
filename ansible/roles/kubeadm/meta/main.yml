@@ -1,6 +1,15 @@
-#This role is part of the coral-io cluster template
-
+---
 galaxy_info:
-  author: chxmxii 
-  email: chamsii.mouhib@gmail.com 
-  company: CORAL-IO 
+  role_name: kubeadm
+  namespace: kubegoros
+  author: chxmxii
+  description: "Bootstraps a hardened kubeadm cluster (audit, encryption at rest, OIDC) with Cilium"
+  company: CORAL-IO
+  license: See LICENSE.md in the repository root
+  min_ansible_version: "2.17"
+  platforms:
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+dependencies: []

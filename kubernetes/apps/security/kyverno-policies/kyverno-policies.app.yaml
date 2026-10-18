@@ -1,0 +1,39 @@
+# Pod Security Standards as Kyverno policies, in Audit mode: violations show up in
+# PolicyReports (kubectl get polr -A) without blocking anything. Hard enforcement is
+# done per namespace by Pod Security Admission labels (managedNamespaceMetadata on each app).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno-policies
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: kyverno
+    server: https://kubernetes.default.svc
+  project: security
+  source:
+    chart: kyverno-policies
+    repoURL: https://kyverno.github.io/kyverno
+    targetRevision: 3.8.2
+    helm:
+      valuesObject:
+        podSecurityStandard: restricted
+        validationFailureAction: Audit
+        background: true
+        includeOtherPolicies:
+          - require-non-root-groups
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 10
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 10m

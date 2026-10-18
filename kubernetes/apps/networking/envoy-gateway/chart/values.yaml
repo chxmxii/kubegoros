@@ -1,0 +1,10 @@
+gateway-helm:
+  deployment:
+    replicas: 2
+    envoyGateway:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi

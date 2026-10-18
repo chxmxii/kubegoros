@@ -1,0 +1,50 @@
+---
+# Imported at the top of every cluster playbook. Runs before fact gathering because the
+# targets may not have a usable Python yet.
+- name: Bootstrap Python and check the operating system
+  hosts: all
+  become: true
+  gather_facts: false
+  tags: always
+  tasks:
+    - name: Probe the operating system
+      ansible.builtin.raw: |
+        if [ -e /run/ostree-booted ]; then echo "ostree"; exit 0; fi
+        . /etc/os-release && echo "${ID} ${ID_LIKE:-} ${VERSION_ID%%.*}"
+      register: os_probe
+      changed_when: false
+
+    - name: Ensure the operating system is supported
+      ansible.builtin.assert:
+        that:
+          - "'ostree' not in os_probe.stdout"
+          - os_probe.stdout is search('rhel|centos|fedora')
+          - (os_probe.stdout.split() | last | int) >= 8
+        fail_msg: >-
+          {{ inventory_hostname }} runs '{{ os_probe.stdout | trim }}'. These roles target
+          EL8/EL9 (RHEL, Rocky, Alma, CentOS Stream) with dnf. rpm-ostree systems such as the
+          Fedora CoreOS images built by proxmox/opentofu are not supported.
+        quiet: true
+
+    - name: Install Python 3.11
+      ansible.builtin.raw: |
+        if [ -x /usr/bin/python3.11 ] && /usr/bin/python3.11 -m pip --version >/dev/null 2>&1; then
+          echo "present"
+        else
+          dnf -y install python3.11 python3.11-pip
+        fi
+      register: python_install
+      changed_when: "'present' not in python_install.stdout"
+
+- name: Preflight checks
+  hosts: all
+  become: true
+  tags: always
+  tasks:
+    - name: Ensure the node is a RedHat family system
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == 'RedHat'
+          - ansible_distribution_major_version | int >= 8
+        fail_msg: "Unsupported OS {{ ansible_distribution }} {{ ansible_distribution_version }}"
+        quiet: true

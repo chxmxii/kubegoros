@@ -3,6 +3,8 @@
 #   task cluster:upgrade VERSION=1.30
 #   task cluster:upgrade VERSION=1.31   ... up to 1.37
 # Control planes are upgraded one at a time (initial control plane first), then the workers.
+- name: Bootstrap
+  ansible.builtin.import_playbook: bootstrap.yml
 
 - name: Pre-flight checks
   hosts: kube_controlplanes[0]
@@ -11,14 +13,15 @@
   tags: always
   tasks:
     - name: Ensure a target minor version was given
-      assert:
+      ansible.builtin.assert:
         that:
           - kube_upgrade_version is defined
           - kube_upgrade_version is match('^1\.[0-9]+$')
         fail_msg: "Pass the target minor version, e.g. -e kube_upgrade_version=1.30"
+        quiet: true
 
     - name: Get the current API server version
-      command: kubectl --kubeconfig /etc/kubernetes/admin.conf version -o json
+      ansible.builtin.command: kubectl --kubeconfig /etc/kubernetes/admin.conf version -o json
       register: kube_version_json
       changed_when: false
 
@@ -26,14 +29,17 @@
       vars:
         current_minor: "{{ (kube_version_json.stdout | from_json).serverVersion.minor | regex_replace('[^0-9]', '') | int }}"
         target_minor: "{{ kube_upgrade_version.split('.')[1] | int }}"
-      assert:
+      ansible.builtin.assert:
         that: (target_minor | int) in [current_minor | int, (current_minor | int) + 1]
         fail_msg: "Cluster is on 1.{{ current_minor }}; kubeadm can only upgrade to 1.{{ current_minor | int + 1 }} next."
+        quiet: true
 
     - name: Ensure all nodes are Ready
-      shell: >
-        kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes --no-headers
-        | awk '$2 !~ /^Ready/ {print $1}'
+      ansible.builtin.shell: |
+        set -o pipefail
+        kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes --no-headers | awk '$2 !~ /^Ready/ {print $1}'
+      args:
+        executable: /usr/bin/bash
       register: not_ready_nodes
       changed_when: false
       failed_when: not_ready_nodes.stdout | length > 0
@@ -46,10 +52,9 @@
     - vars/main.yml
   vars:
     kubernetes_version: "{{ kube_upgrade_version }}"
-    kube_admin_node: "{{ groups['kube_controlplanes'][0] }}"
   tasks:
     - name: Upgrade node
-      include_tasks: tasks/03-upgrade_node.yml
+      ansible.builtin.include_tasks: tasks/03-upgrade_node.yml
 
 - name: Upgrade worker nodes
   hosts: kube_workernodes
@@ -59,7 +64,6 @@
     - vars/main.yml
   vars:
     kubernetes_version: "{{ kube_upgrade_version }}"
-    kube_admin_node: "{{ groups['kube_controlplanes'][0] }}"
   tasks:
     - name: Upgrade node
-      include_tasks: tasks/03-upgrade_node.yml
+      ansible.builtin.include_tasks: tasks/03-upgrade_node.yml

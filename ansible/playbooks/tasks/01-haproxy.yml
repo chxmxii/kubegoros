@@ -1,142 +1,144 @@
-#task for haproxy
 ---
-- name: Ensure the hostname is changed.
-  hostname:
+# tasks for the HAProxy + keepalived API server load balancers
+- name: Ensure the hostname is set
+  ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
 
-- name: Ensure /etc/hosts is updated.
-  template:
+- name: Ensure /etc/hosts is updated
+  ansible.builtin.template:
     src: hosts.j2
     dest: /etc/hosts
     owner: root
     group: root
-    mode: '0644'
-
-- name: set fact for halb01 address
-  set_fact:
-    halb01_address : "{{ hostvars['halb01']['ansible_default_ipv4']['address'] }}"
-
-- name: set fact for halb02 address
-  set_fact:
-    halb02_address : "{{ hostvars['halb02']['ansible_default_ipv4']['address'] }}"
+    mode: "0644"
 
 - name: Ensure non local IP binding is enabled
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.ip_nonlocal_bind
     value: "1"
+    sysctl_file: /etc/sysctl.d/90-haproxy.conf
     state: present
     reload: true
 
 - name: Install HAProxy and keepalived packages
-  yum:
-    name: haproxy, keepalived, psmisc
+  ansible.builtin.dnf:
+    name:
+      - haproxy
+      - keepalived
+      - psmisc
+      - dnf-plugins-core
     state: present
 
-- name: Install HAProxy with Prometheus Exporter
-  when: haproxy_metrics_isenabled 
+- name: Install HAProxy with the Prometheus exporter
+  when: haproxy_metrics_isenabled | bool
   block:
-    - name: Install Required Dependencies
-      package:
-        name: 
-          - git
-          - gcc
-          - make
-          - openssl-devel
-          - readline-devel
-          - pcre-devel
-          - zlib-devel
-          - lua
-        state: present
+    - name: Check the installed HAProxy build
+      ansible.builtin.command: /usr/sbin/haproxy -vv
+      register: haproxy_build
+      changed_when: false
+      failed_when: false
 
-    - name: Download and Extract Lua Source Code
-      unarchive:
-        remote_src: true
-        src: "http://www.lua.org/ftp/lua-{{ lua_version }}.tar.gz"
-        dest: /tmp/
+    - name: Build HAProxy from source
+      when: >-
+        ('HA-Proxy version ' ~ haproxy_version) not in haproxy_build.stdout
+        or 'prometheus-exporter' not in haproxy_build.stdout
+      block:
+        - name: Enable the repository providing lua-devel (PowerTools on EL8, CRB on EL9)
+          ansible.builtin.command: >
+            dnf config-manager --set-enabled {{ 'powertools' if ansible_distribution_major_version == '8' else 'crb' }}
+          changed_when: true
 
-    - name: Compile Lua Source
-      community.general.make:
-        chdir: "/tmp/lua-{{ lua_version }}"
-        target: linux
+        - name: Install build dependencies
+          ansible.builtin.dnf:
+            name:
+              - gcc
+              - make
+              - openssl-devel
+              - pcre2-devel
+              - zlib-devel
+              - lua-devel
+              - systemd-devel
+            state: present
 
-    - name: Install Lua Binary
-      community.general.make:
-        chdir: "/tmp/lua-{{ lua_version }}"
-        target: install
+        - name: Download the HAProxy source
+          ansible.builtin.get_url:
+            url: "https://www.haproxy.org/download/{{ haproxy_version.split('.')[:2] | join('.') }}/src/haproxy-{{ haproxy_version }}.tar.gz"
+            dest: /tmp/haproxy-{{ haproxy_version }}.tar.gz
+            checksum: "{{ haproxy_checksum }}"
+            mode: "0644"
 
-    - name: Clone HAProxy Repository from GitHub
-      git: 
-        repo: https://github.com/haproxy/haproxy.git
-        dest: /tmp/haproxy
-        clone: yes
-        update: yes
-    
-    - name: Compile HAProxy with Required Modules and Prometheus Exporter
-      community.general.make:
-        chdir: /tmp/haproxy
-        params:
-          TARGET: linux-glibc
-          USE_LUA: 1 
-          USE_OPENSSL: 1 
-          USE_PCRE: 1 
-          USE_ZLIB: 1 
-          USE_SYSTEMD: 1 
-          USE_PROMEX: 1
-      
-    - name: Install HAProxy Binaries
-      community.general.make:
-        chdir: /tmp/haproxy
-        target: install-bin
-    
-    - name: Stop HAProxy Service if Running
-      service:
-        name: haproxy
-        state: stopped
+        - name: Extract the HAProxy source
+          ansible.builtin.unarchive:
+            remote_src: true
+            src: /tmp/haproxy-{{ haproxy_version }}.tar.gz
+            dest: /tmp/
 
-    - name: Deploy HAProxy Binary to System Path
-      copy:
-        remote_src: true
-        src: /usr/local/sbin/haproxy
-        dest: /usr/sbin/haproxy
-        mode: '0755'
-  rescue:
-    - name: Log Installation Failure
-      debug:
-        msg: "Installation of HAProxy with Prometheus Exporter failed. Proceeding with cleanup."
-  always:
-    - name: Clean Up Temporary Directories
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /tmp/haproxy
-        - /tmp/lua-{{ lua_version }}
+        - name: Compile HAProxy with Lua, OpenSSL and the Prometheus exporter
+          community.general.make:
+            chdir: /tmp/haproxy-{{ haproxy_version }}
+            params:
+              TARGET: linux-glibc
+              USE_LUA: 1
+              USE_OPENSSL: 1
+              USE_PCRE2: 1
+              USE_ZLIB: 1
+              USE_SYSTEMD: 1
+              USE_PROMEX: 1
 
-- name: Deploy HAProxy Configuration
-  template:
+        - name: Install the HAProxy binary
+          ansible.builtin.copy:
+            remote_src: true
+            src: /tmp/haproxy-{{ haproxy_version }}/haproxy
+            dest: /usr/sbin/haproxy
+            owner: root
+            group: root
+            mode: "0755"
+          notify: Restart haproxy
+      always:
+        - name: Clean up the HAProxy build
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/haproxy-{{ haproxy_version }}
+            - /tmp/haproxy-{{ haproxy_version }}.tar.gz
+
+- name: Deploy HAProxy configuration
+  ansible.builtin.template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/sbin/haproxy -c -f %s
+  notify: Restart haproxy
 
-- name: Deploy Keepalived Configuration
-  template:
+- name: Deploy keepalived configuration
+  ansible.builtin.template:
     src: keepalived.conf.j2
     dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart keepalived
 
-- name: Deploy Keepalived Configuration
-  template:
+- name: Deploy keepalived health check script
+  ansible.builtin.template:
     src: heartbeat.sh.j2
     dest: /etc/keepalived/heartbeat.sh
+    owner: root
+    group: root
     mode: "0750"
 
-- name: Start and Enable HAProxy and Keepalived Services
-  systemd:
+- name: Start and enable HAProxy and keepalived
+  ansible.builtin.systemd_service:
     name: "{{ item }}"
     state: started
-    enabled: yes
+    enabled: true
   loop:
     - haproxy
     - keepalived
 
-- name: Ensure Keepalived metrics exported is installed and enabled.
-  include_tasks: 02-install_kame.yml
-  when: keepalived_metrics_isenabled
+- name: Install the keepalived metrics exporter
+  ansible.builtin.include_tasks: 02-install_kame.yml
+  when: keepalived_metrics_isenabled | bool

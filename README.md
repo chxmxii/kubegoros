@@ -10,8 +10,9 @@ Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/A
 Provision your multi-master and multi-node kubernetes cluster homelab with ansible and kubeadm in the GitOps way! 
 
 ---
-## Architecture
-![arch](docs/arch.png)
+## Documentation
+
+**https://chxmxii.github.io/kubegoros/** covers the architecture, building a cluster, SSO, storage, upgrades and hardening. The source is in [`site/`](site/).
 ---
 
 ## Environment
@@ -28,7 +29,7 @@ All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.
 | halb01           | CentOS 7 | LXC       |
 | halb02           | CentOS 7 | LXC       |
 
-Kubernetes **v1.37** (kubeadm, containerd 2.x, cgroup v2). See [docs/upgrade.md](docs/upgrade.md) to upgrade an existing cluster.
+Kubernetes **v1.37** (kubeadm, containerd 2.x, cgroup v2). See [Upgrade Kubernetes](https://chxmxii.github.io/kubegoros/operations/upgrade/) to upgrade an existing cluster.
 
 ---
 ## Features
@@ -70,7 +71,7 @@ Follow these steps to install:
 |       ├── 📁 containerd        # Installs and configure containerd.
 |       ├── 📁 kubeadm           # Install and configure kubernetes.
 |       └── 📁 gitops            # Install, Configure and Bootstrap argoCD.
-├── 📁 docs                      # Upgrade guide, Cilium migration, platform setup.
+├── 📁 site                      # Documentation site (Astro Starlight).
 ├── 📁 tests                     # Ansible tests.
 └── 📁 .taskfiles                # Taskfiles root directory.
     ├── 📄 cluster.yml           # Cluster init / reset / upgrade.
@@ -138,9 +139,9 @@ Follow these steps to install:
         <td>Bare metal load-balancer for Kubernetes</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://nginx.org/nginx.png"></td>
-        <td><a href="https://www.nginx.com">NGINX Ingress Controller</a></td>
-        <td>Kubernetes Ingress Controller</td>
+        <td><img width="32" src="https://raw.githubusercontent.com/envoyproxy/artwork/main/PNG/Envoy_Logo_Final_PANTONE.png"></td>
+        <td><a href="https://gateway.envoyproxy.io">Envoy Gateway</a></td>
+        <td>Gateway API ingress with TLS and Keycloak SSO</td>
     </tr>
     <tr>
         <td><img width="32" src="https://vadosware.io/images/longhorn-logo.png"></td>
@@ -166,6 +167,11 @@ Follow these steps to install:
         <td><img width="32" src="https://external-secrets.io/latest/pictures/eso-round-logo.svg"></td>
         <td><a href="https://external-secrets.io">External Secrets</a></td>
         <td>Syncs secrets from Vault into the cluster</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://raw.githubusercontent.com/kubernetes-sigs/headlamp/main/frontend/src/resources/icon-dark.svg"></td>
+        <td><a href="https://headlamp.dev">Headlamp</a></td>
+        <td>Kubernetes web UI, signed in through Keycloak</td>
     </tr>
 </table>
 

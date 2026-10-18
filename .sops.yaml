@@ -4,4 +4,4 @@ creation_rules:
     encrypted_regex: "^git_repo$"
     path_regex: ansible/roles/gitops/defaults/main.yml
   - age: >-
-      age1yya5xs2rlqsualafaca3a03caceahmxucudm5uld7dr0g2utyqrq6ph3gl    
+      age1yya5xs2rlqsualafaca3a03caceahmxucudm5uld7dr0g2utyqrq6ph3gl

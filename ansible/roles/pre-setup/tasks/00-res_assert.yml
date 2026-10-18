@@ -1,22 +1,25 @@
 ---
 - name: Ensure minimum CPU requirement
-  assert:
-    that: ansible_processor_vcpus >= 2
-    fail_msg: "Insufficient CPU resources. A minimum of 2 CPUs is required to proceed. Current CPU count: {{ ansible_processor_vcpus }}."
+  ansible.builtin.assert:
+    that: ansible_processor_vcpus >= pre_setup_min_vcpus
+    fail_msg: "A minimum of {{ pre_setup_min_vcpus }} vCPUs is required. Current: {{ ansible_processor_vcpus }}."
+    quiet: true
 
 - name: Ensure minimum RAM requirement
-  assert:
-    that: ansible_memtotal_mb >= 2048
-    fail_msg: "Insufficient memory. A minimum of 2048MB RAM is required to proceed. Current memory: {{ ansible_memtotal_mb }}MB."
+  ansible.builtin.assert:
+    that: ansible_memtotal_mb >= pre_setup_min_memory_mb
+    fail_msg: "A minimum of {{ pre_setup_min_memory_mb }}MB RAM is required. Current: {{ ansible_memtotal_mb }}MB."
+    quiet: true
 
 # kubelet >= 1.35 refuses to start on cgroup v1 hosts (failCgroupV1 defaults to true).
 # On EL8 enable v2 with: grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=1" && reboot
 - name: Check cgroup version
-  command: stat -fc %T /sys/fs/cgroup
+  ansible.builtin.command: stat -fc %T /sys/fs/cgroup
   register: cgroup_fs
   changed_when: false
 
 - name: Ensure the node runs cgroup v2
-  assert:
+  ansible.builtin.assert:
     that: cgroup_fs.stdout == 'cgroup2fs'
     fail_msg: "cgroup v1 detected ({{ cgroup_fs.stdout }}). Kubernetes >= 1.35 requires cgroup v2."
+    quiet: true

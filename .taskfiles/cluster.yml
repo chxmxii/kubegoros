@@ -2,7 +2,7 @@ version: '3'
 
 vars:
   ANSIBLE_INVENTORY: "inventory.yml"
-  
+
 tasks:
   init:
     silent: true
@@ -10,14 +10,14 @@ tasks:
       - echo "Initializing the Kubernetes cluster..." && ansible-playbook ansible/playbooks/cluster.yml --tags="cluster"
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
-  
+
   reset:
     silent: true
     cmds:
       - echo "Resetting the Kubernetes cluster..." && ansible-playbook ansible/playbooks/reset.yml
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
-        
+
   upgrade:
     silent: true
     desc: "Upgrade one minor version at a time, e.g. task cluster:upgrade VERSION=1.30"
@@ -25,5 +25,21 @@ tasks:
       vars: [VERSION]
     cmds:
       - echo "Upgrading the Kubernetes cluster to {{.VERSION}}..." && ansible-playbook ansible/playbooks/upgrade.yml -e kube_upgrade_version={{.VERSION}}
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
+
+  harden:
+    silent: true
+    desc: "Apply audit logging, encryption at rest and OIDC to an existing cluster (>= 1.34)"
+    cmds:
+      - echo "Hardening the Kubernetes control plane..." && ansible-playbook ansible/playbooks/harden-controlplane.yml
+    preconditions:
+      - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
+
+  verify:
+    silent: true
+    desc: "Read-only smoke test of the running cluster"
+    cmds:
+      - echo "Verifying the Kubernetes cluster..." && ansible-playbook ansible/playbooks/verify.yml
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }

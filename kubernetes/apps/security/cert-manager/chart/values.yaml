@@ -2,6 +2,13 @@ cert-manager:
   crds:
     enabled: true
 
+  # Issue certificates for Gateway listeners (cert-manager.io/cluster-issuer on the Gateway).
+  # Needs the Gateway API CRDs, installed by the envoy-gateway app (sync wave -5).
+  config:
+    apiVersion: controller.config.cert-manager.io/v1alpha1
+    kind: ControllerConfiguration
+    enableGatewayAPI: true
+
   ingressShim:
     defaultIssuerName: letsencrypt
     defaultIssuerKind: ClusterIssuer

@@ -1,6 +1,9 @@
 ---
 # DESTRUCTIVE: wipes Kubernetes from every node in kube_cluster.
-- name: Reset Kubernetes Cluster
+- name: Bootstrap
+  ansible.builtin.import_playbook: bootstrap.yml
+
+- name: Reset Kubernetes cluster
   hosts: kube_cluster
   become: true
   vars_prompt:
@@ -9,15 +12,16 @@
       private: false
   tasks:
     - name: Abort unless confirmed
-      assert:
+      ansible.builtin.assert:
         that: confirm_reset == 'yes'
+        quiet: true
 
     - name: Reset kubeadm
-      command: kubeadm reset --force
+      ansible.builtin.command: kubeadm reset --force
       changed_when: true
 
-    - name: Remove CNI and kubeconfig leftovers
-      file:
+    - name: Remove CNI, kubeconfig and control plane leftovers
+      ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
@@ -25,15 +29,20 @@
         - /var/lib/cni
         - /run/cilium
         - /etc/kubernetes
+        - /var/log/kubernetes
         - /root/.kube
 
     - name: Remove Cilium network interfaces
-      command: ip link delete {{ item }}
+      ansible.builtin.command: ip link delete {{ item }}
       loop: [cilium_host, cilium_net, cilium_vxlan]
       register: link_delete
       failed_when: false
       changed_when: link_delete.rc == 0
 
-    - name: Flush iptables
-      shell: iptables-save | grep -v -E 'KUBE|CILIUM' | iptables-restore
+    - name: Flush Kubernetes and Cilium iptables rules
+      ansible.builtin.shell: |
+        set -o pipefail
+        iptables-save | grep -v -E 'KUBE|CILIUM' | iptables-restore
+      args:
+        executable: /usr/bin/bash
       changed_when: true

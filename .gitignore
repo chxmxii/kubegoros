@@ -1,0 +1,9 @@
+# Generated credentials (ArgoCD admin password, keepalived auth, ...)
+.secrets/
+
+# Python virtualenv (task env:prepare)
+.venv/
+
+# Helm dependencies vendored by `helm dependency build/update` and kustomize --enable-helm
+**/chart/charts/
+*.tgz
