@@ -1,0 +1,11 @@
+apiVersion: v2
+name: netbird
+description: netbird kubernetes operator + routing peers
+type: application
+version: 0.1.0
+appVersion: "0.3.1"
+
+dependencies:
+  - name: kubernetes-operator
+    version: "0.3.1"
+    repository: https://netbirdio.github.io/helms

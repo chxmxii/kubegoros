@@ -2,7 +2,6 @@ external-secrets:
   installCRDs: true
 
 vaultStore:
-  vaultToken: aHZzLlRjNEx4eUNiRTgzM2VaQU8xbHpVU3JPUA==
   tokenSecretRef:
     key: token
     name: vault-token

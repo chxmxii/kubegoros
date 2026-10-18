@@ -108,15 +108,16 @@ kubeEtcd:
         sourceLabels: ["__name__"]
         regex: (etcd_request_duration_seconds_bucket)
 
-kubeControllerMnager:
+kubeControllerManager:
   enabled: true
   # endpoints:
   #   - 10.254.100.10
   #   - 10.254.100.11
   #   - 10.254.100.15
 
+# kube-proxy is replaced by Cilium (kubeProxyReplacement)
 kubeProxy:
-  enabled: true
+  enabled: false
   # endpoints:
   #   - 10.254.100.10
   #   - 10.254.100.11
@@ -208,34 +209,18 @@ grafana:
       - grafana.k8s.coralio.co
 
     annotations:
-      kubernetes.io/ingress.class: nginx
-      kubernetes.io/tls-acme: "true"
       cert-manager.io/cluster-issuer: letsencrypt
 
   # defaultDashboardsEditable: false
 
 
   additionalDataSources:
-    # - name: Prometheus
-    #   orgId: 1
-    #   access: proxy
-    #   url: http://thanos-query-frontend.thanos.svc.cluster.local:10902
-    #   jsonData:
-    #     prometheusType: Thanos
-    #     timeInterval: 1m
-    #   isDefault: true
-    # - name: Loki
-    #   ordId: 1
-    #   access: proxy
-    #   type: loki
-    #   url: http://loki-gateway
-    #   jsonData:
-    #     maxLines: 250
-    # - name: Tempo
-    #   orgId: 1
-    #   access: proxy
-    #   type: tempo
-    #   url: http://tempo.monitoring.svc:3100
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki-gateway.logging.svc.cluster.local
+      jsonData:
+        maxLines: 1000
 
 prometheus:
   ingress:

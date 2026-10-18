@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   project: networking
   source:
-    repoURL: https://gitlab.com/chxmxii/cluster-template-coralio.git
+    repoURL: https://github.com/chxmxii/kubegoros.git
     path: kubernetes/apps/networking/nginx-ingress-controller/chart
     targetRevision: HEAD
   syncPolicy:

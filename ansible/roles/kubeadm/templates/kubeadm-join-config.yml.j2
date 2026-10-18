@@ -1,5 +1,5 @@
 ---
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: JoinConfiguration
 {% if kube_cfg_join_conf | length > 0 %}
 {{ kube_cfg_join_conf | to_nice_yaml }}

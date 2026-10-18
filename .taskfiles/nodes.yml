@@ -18,9 +18,9 @@ tasks:
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
 
-  shutdown:
+  reboot:
     silent: true
     cmds:
-      - echo "Shutting down all the nodes..." && ansible all -a 'systemctl reboot --now' -b
+      - echo "Rebooting all the nodes..." && ansible all -a 'systemctl reboot' -b
     preconditions:
       - {msg: "Missing Ansible Inventory file", sh: "test -f {{.ANSIBLE_INVENTORY}}" }
