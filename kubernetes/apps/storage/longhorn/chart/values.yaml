@@ -1,26 +1,55 @@
+# Longhorn storage for kubegoros.
+# The UI is exposed through the edge Gateway behind Keycloak SSO (kubernetes/apps/networking/edge).
+
+# S3 backup target. Fill in your bucket/region; credentials come from Vault
+# (secret/longhorn-backup -> ExternalSecret templates/backup-credentials.yaml).
+backup:
+  # s3://<bucket>@<region>/<path>   e.g. s3://kubegoros-backups@eu-central-2/longhorn
+  target: s3://kubegoros-backups@eu-central-2/longhorn
+  credentialSecret: longhorn-backup-s3
+
 longhorn:
   ingress:
-    enabled: true
-    ingressClassName: nginx
-    host: longhorn.k8s.coralio.co
-    tls: true
-    tlsSecret: longhorn-storage-co-tls
-    annotations:
-      kubernetes.io/tls-acme: "true"
-      cert-manager.io/cluster-issuer: letsencrypt
-      # nginx.ingress.kubernetes.io/auth-url: 
-      # nginx.ingress.kubernetes.io/auth-signin:
+    enabled: false
+
   persistence:
+    defaultClass: true
+    defaultFsType: ext4
+    # 2 replicas on 3 workers: survives one node failure and leaves room to rebuild.
+    defaultClassReplicaCount: 2
+    defaultDataLocality: best-effort
+    reclaimPolicy: Delete
     removeSnapshotsDuringFilesystemTrim: enabled
+
+  # Keep in sync with backup.target / backup.credentialSecret above
+  defaultBackupStore:
+    backupTarget: s3://kubegoros-backups@eu-central-2/longhorn
+    backupTargetCredentialSecret: longhorn-backup-s3
+    pollInterval: 300
+
+  defaultSettings:
+    defaultReplicaCount: 2
+    defaultDataLocality: best-effort
+    # Never put two replicas of a volume on the same node
+    replicaSoftAntiAffinity: false
+    replicaAutoBalance: best-effort
+    # Keep 15% free per disk and reserve 25% of the default disk for the OS
+    storageMinimalAvailablePercentage: 15
+    storageReservedPercentageForDefaultDisk: 25
+    storageOverProvisioningPercentage: 100
+    # Drains wait until the last healthy replica on a node has been moved elsewhere
+    nodeDrainPolicy: block-for-eviction-if-contains-last-replica
+    nodeDownPodDeletionPolicy: delete-both-statefulset-and-deployment-pod
+    autoCleanupSystemGeneratedSnapshot: true
+    snapshotDataIntegrity: fast-check
+    snapshotDataIntegrityCronjob: "0 3 * * 0"
+    removeSnapshotsDuringFilesystemTrim: enabled
+    concurrentAutomaticEngineUpgradePerNodeLimit: 1
+    allowCollectingLonghornUsageMetrics: false
 
   metrics:
     serviceMonitor:
-      enabled: false
+      enabled: true
 
-  defaultSettings:
-    defaultLonghornStaticStorageClass: longhorn
-    # backupTarget: s3://wasabi
-    removeSnapshotsDuringFilesystemTrim: enabled
-  
   preUpgradeChecker:
     jobEnabled: false
