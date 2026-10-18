@@ -9,10 +9,13 @@ Simplifying the deployment of Kubernetes cluster at home in a GitOps fashion w/A
 
 Provision your multi-master and multi-node kubernetes cluster homelab with ansible and kubeadm in the GitOps way! 
 
+> **Note:** I wrote and maintained this project by hand for a long time. I now use [Claude](https://claude.com/claude-code) to help me maintain it for my homelab.
+
 ---
 ## Documentation
 
 **https://chxmxii.github.io/kubegoros/** covers the architecture, building a cluster, SSO, storage, upgrades and hardening. The source is in [`site/`](site/).
+
 ---
 
 ## Environment
