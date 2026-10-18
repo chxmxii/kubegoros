@@ -21,13 +21,13 @@ apiKey:
 router:
   replicas: 2
   # Must be an existing DNS zone in NetBird (Dashboard -> DNS -> Zones)
-  dnsZone: k8s.coralio.co
+  dnsZone: lab.chxmxii.xyz
 
 # Cluster services published as NetBird network resources.
 # `groups` are NetBird group names whose peers may reach the resource (via an access policy in the dashboard).
 resources:
-  - name: ingress-nginx
-    namespace: ingress-nginx
-    service: ingress-nginx-controller
+  - name: edge-gateway
+    namespace: envoy-gateway-system
+    service: envoy-edge
     groups:
       - homelab-admins

@@ -1,0 +1,174 @@
+# Single shared edge Gateway. Each HTTPS listener gets its own Let's Encrypt
+# certificate from cert-manager's gateway-shim (annotation below).
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: edge
+    namespace: envoy-gateway-system
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: edge
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: 2
+        pod:
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 100
+                  podAffinityTerm:
+                    topologyKey: kubernetes.io/hostname
+                    labelSelector:
+                      matchLabels:
+                        gateway.envoyproxy.io/owning-gateway-name: edge
+      envoyPDB:
+        minAvailable: 1
+      envoyService:
+        # Fixed name so NetBird and docs can reference it
+        name: envoy-edge
+        type: LoadBalancer
+        # Preserve client source IPs (MetalLB L2 + Local)
+        externalTrafficPolicy: Local
+        annotations:
+          metallb.io/loadBalancerIPs: 10.254.100.205
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: edge
+  namespace: envoy-gateway-system
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  gatewayClassName: envoy
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https-argocd
+      protocol: HTTPS
+      port: 443
+      hostname: argocd.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: argocd-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+    - name: https-grafana
+      protocol: HTTPS
+      port: 443
+      hostname: grafana.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: grafana-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+    - name: https-prometheus
+      protocol: HTTPS
+      port: 443
+      hostname: prometheus.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: prometheus-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+    - name: https-alertmanager
+      protocol: HTTPS
+      port: 443
+      hostname: alerts.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: alertmanager-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+    - name: https-longhorn
+      protocol: HTTPS
+      port: 443
+      hostname: longhorn.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: longhorn-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: longhorn-system
+    - name: https-hubble
+      protocol: HTTPS
+      port: 443
+      hostname: hubble.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: hubble-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+    - name: https-keycloak
+      protocol: HTTPS
+      port: 443
+      hostname: keycloak.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: keycloak-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: keycloak
+    - name: https-headlamp
+      protocol: HTTPS
+      port: 443
+      hostname: headlamp.lab.chxmxii.xyz
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: headlamp-tls
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: headlamp
