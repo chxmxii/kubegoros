@@ -1,29 +1,30 @@
 ---
-- name: Retrieve Cluster Namespaces
-  command: kubectl get ns -ocustom-columns=:.metadata.name 
-  register: cluster_namespaces
-  changed_when: false
+- name: Create ArgoCD namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ argocd_namespace }}"
+    state: present
 
-- debug:
-    var: cluster_namespaces.stdout_lines
+- name: Check whether ArgoCD is already installed
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: argocd-server
+    namespace: "{{ argocd_namespace }}"
+  register: argocd_server_deployment
 
-- name: Install ArgoCD 
+# Only the first install is done here; afterwards ArgoCD is upgraded deliberately (not by re-running bootstrap)
+- name: Install ArgoCD
+  when: argocd_server_deployment.resources | length == 0
   block:
-    - name: Create ArgoCD Namespace
-      kubernetes.core.k8s:
-        api_version: v1
-        state: present
-        name: "{{ argocd_namespace }}"
-        kind: Namespace
-
-    - name: Download argocd manifest file. 
-      get_url:
+    - name: Download the ArgoCD manifest
+      ansible.builtin.get_url:
         url: "{{ argocd_manifests }}"
         dest: /tmp/argocd.yml
         owner: root
         group: root
-        mode: '0440'
-    
+        mode: "0600"
+
     # ArgoCD 3.x CRDs exceed the client-side apply annotation limit
     - name: Deploy ArgoCD
       kubernetes.core.k8s:
@@ -35,16 +36,27 @@
           field_manager: ansible
           force_conflicts: true
   always:
-    - name: Clean Installation
-      file:
+    - name: Clean installation manifest
+      ansible.builtin.file:
         path: /tmp/argocd.yml
-        state: absent 
-  when: argocd_namespace not in cluster_namespaces.stdout_lines
+        state: absent
 
-- name: Install ArgoCD Command Line Tool
-  get_url:
+- name: Install ArgoCD command line tool
+  ansible.builtin.get_url:
     url: "{{ argocd_cli_url }}"
     dest: "{{ argocd_binary_path }}/argocd"
+    checksum: "{{ argocd_cli_checksum }}"
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
+
+- name: Wait for ArgoCD to be available
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    name: argocd-server
+    namespace: "{{ argocd_namespace }}"
+    wait: true
+    wait_condition:
+      type: Available
+      status: "True"
+    wait_timeout: 600

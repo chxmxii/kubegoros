@@ -1,35 +1,38 @@
 ---
-- name: Create control plane configuration and certs diretory
-  file:
+- name: Create control plane configuration and certs directory
+  ansible.builtin.file:
     path: "{{ kubelet_config_root_dir }}/pki/etcd"
     state: directory
     owner: root
     group: root
-    mode: 0640
+    mode: "0700"
 
 - name: Write control plane configuration and certs
-  copy: 
-    dest: "{{ item.item.item }}" 
+  ansible.builtin.copy:
+    dest: "{{ item.item.item }}"
     content: "{{ item.content | b64decode }}"
     owner: root
     group: root
-    mode: 0600
-  loop: "{{ kube_cluster_control_plane_files.results }}"
+    mode: "0600"
+  loop: "{{ kube_cluster_control_plane_files.results | selectattr('content', 'defined') }}"
   loop_control:
     label: "{{ item.item.item }}"
+  no_log: true
+
+- name: Write control plane security configuration
+  ansible.builtin.include_tasks: 05-controlplane_security.yml
 
 - name: Join control-plane node
-  include_tasks: 04-k8s_join_node.yml
+  ansible.builtin.include_tasks: 04-k8s_join_node.yml
 
 - name: Ensure .kube directory exists
-  file:
+  ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.kube"
     state: directory
-    mode: "0755"
+    mode: "0700"
 
-- name: Create Symbolic link for admin.conf
-  file:
+- name: Create symbolic link for admin.conf
+  ansible.builtin.file:
     src: "{{ kubelet_config_root_dir }}/admin.conf"
-    dest: ~/.kube/config
-    state: link 
-    mode: '0644'
+    dest: "{{ ansible_env.HOME }}/.kube/config"
+    state: link

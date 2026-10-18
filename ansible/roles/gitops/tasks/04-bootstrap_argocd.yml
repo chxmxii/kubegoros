@@ -1,32 +1,39 @@
-# tasks for argocd aoa bootstrapping
 ---
-- name: Initialize ArgoCD Bootstrap Process
+# tasks for argocd app-of-apps bootstrapping
+- name: Initialize ArgoCD bootstrap process
   block:
-    - name: Prepare ArgoCD Bootstrap Directory
-      file:
+    - name: Prepare ArgoCD bootstrap directory
+      ansible.builtin.file:
         path: /tmp/argocd/bootstrap
         state: directory
+        mode: "0700"
 
-    - name: Deploy ArgoCD Application Manifests
-      template:
+    - name: Deploy ArgoCD application manifests
+      ansible.builtin.template:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
+        mode: "0600"
       loop:
         - { src: 'root.yaml.j2', dest: '/tmp/argocd/bootstrap/root.yaml' }
         - { src: 'projects.yaml.j2', dest: '/tmp/argocd/bootstrap/projects.yaml' }
 
     - name: Deploy ArgoCD private repository credentials
-      template:
+      ansible.builtin.template:
         src: repo.yaml.j2
         dest: /tmp/argocd/bootstrap/repo.yaml
+        mode: "0600"
       when: git_repo is defined and git_repo.username is defined
+      no_log: true
 
-    - name: Apply ArgoCD Bootstrap Configuration
-      command: >
-        kubectl apply -f /tmp/argocd/bootstrap/
+    - name: Apply ArgoCD bootstrap configuration
+      kubernetes.core.k8s:
+        state: present
+        src: "/tmp/argocd/bootstrap/{{ item }}"
+        apply: true
+      loop: "{{ ['root.yaml', 'projects.yaml'] + (['repo.yaml'] if (git_repo is defined and git_repo.username is defined) else []) }}"
 
   always:
-    - name: Clean Bootstrap Directory
-      file:
+    - name: Clean bootstrap directory
+      ansible.builtin.file:
         path: /tmp/argocd
         state: absent

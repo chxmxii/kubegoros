@@ -1,31 +1,35 @@
 ---
 - name: Check if node is already joined
-  stat:
+  ansible.builtin.stat:
     path: "/var/lib/kubelet/kubeadm-flags.env"
   register: kube_node_joined
 
 - name: Copy Kubernetes join configuration template
-  template:
+  ansible.builtin.template:
     src: "kubeadm-join-config.yml.j2"
     dest: "{{ kubelet_config_root_dir }}/kubeadm-join-config.yml"
     owner: root
     group: root
-    mode: '0640'
-
-- name: Join node to Kubernetes cluster
-  command: >
-    kubeadm join --config={{ kubelet_config_root_dir }}/kubeadm-join-config.yml
-  changed_when: false
+    mode: "0600"
   when: not kube_node_joined.stat.exists
 
-- name: check nodes until ready
-  shell: |
-    kubectl get node {{ kube_cluster_node_name }} \
-    --kubeconfig=/etc/kubernetes/admin.conf -ojson | jq -rM '.status.conditions[].status'
+- name: Join node to Kubernetes cluster
+  ansible.builtin.command: kubeadm join --config={{ kubelet_config_root_dir }}/kubeadm-join-config.yml
+  changed_when: true
+  when: not kube_node_joined.stat.exists
+
+- name: Remove the join configuration (contains the bootstrap token)
+  ansible.builtin.file:
+    path: "{{ kubelet_config_root_dir }}/kubeadm-join-config.yml"
+    state: absent
+
+- name: Wait until the node is Ready
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubelet_config_root_dir }}/admin.conf get node {{ kube_cluster_node_name }}
+    -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
   register: cmd_result
   changed_when: false
-  delegate_to: "{{ kube_cluster_init_main_node_name }}"
+  delegate_to: "{{ kube_admin_node }}"
   delay: 5
-  retries: 50
-  until: cmd_result.stdout.split() | last == 'True' 
-  ignore_errors: yes 
+  retries: 60
+  until: cmd_result.stdout == 'True'

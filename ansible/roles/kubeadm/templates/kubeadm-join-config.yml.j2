@@ -1,6 +1,6 @@
 ---
+# {{ ansible_managed }}
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: JoinConfiguration
-{% if kube_cfg_join_conf | length > 0 %}
-{{ kube_cfg_join_conf | to_nice_yaml }}
-{% endif %}
+{% set join_conf = kube_cfg_join_conf | combine(kube_cfg_join_controlplane_conf if kube_cluster_node_type == 'master' else {}) %}
+{{ join_conf | to_nice_yaml(indent=2) }}

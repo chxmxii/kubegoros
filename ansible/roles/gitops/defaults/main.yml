@@ -1,18 +1,25 @@
-#defaults file for gitops
-os_arch: '{{ ansible_architecture }}'
-system_arch: '{{ ''amd64'' if ansible_architecture == ''x86_64'' else ''arm64'' }}'
+---
+# defaults file for gitops
+system_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}"
 os_platform: linux
+
 # @vars for Helm
-helm_binary_path: /usr/bin/helm
 helm_path: /usr/bin
-helm_url: https://get.helm.sh/helm-v{{ helm_version }}-{{ os_platform }}-{{ system_arch }}.tar.gz
+helm_binary_path: "{{ helm_path }}/helm"
 # renovate: datasource=github-releases depName=helm/helm
 helm_version: 3.22.1
+helm_archive: helm-v{{ helm_version }}-{{ os_platform }}-{{ system_arch }}.tar.gz
+helm_url: https://get.helm.sh/{{ helm_archive }}
+helm_checksum: sha256:{{ helm_url }}.sha256sum
+
 # @vars for Kustomize
 k7e_binary_path: /usr/bin
 # renovate: datasource=github-releases depName=kubernetes-sigs/kustomize extractVersion=^kustomize/v(?<version>.*)$
 k7e_version: 5.8.3
-k7e_core_download: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ k7e_version }}/kustomize_v{{ k7e_version }}_linux_{{ system_arch }}.tar.gz
+k7e_archive: kustomize_v{{ k7e_version }}_{{ os_platform }}_{{ system_arch }}.tar.gz
+k7e_core_download: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ k7e_version }}/{{ k7e_archive }}
+k7e_checksum: sha256:https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ k7e_version }}/checksums.txt
+
 # @vars for argocd
 argocd_namespace: argocd
 # renovate: datasource=github-releases depName=argoproj/argo-cd
@@ -20,7 +27,11 @@ argocd_version: 3.5.5
 argocd_manifests: https://raw.githubusercontent.com/argoproj/argo-cd/v{{ argocd_version }}/manifests/install.yaml
 argocd_binary_path: /usr/bin
 argocd_cli_url: https://github.com/argoproj/argo-cd/releases/download/v{{ argocd_version }}/argocd-{{ os_platform }}-{{ system_arch }}
-argocd_new_password: argocdadmin0#
+argocd_cli_checksum: sha256:https://github.com/argoproj/argo-cd/releases/download/v{{ argocd_version }}/cli_checksums.txt
+# Random admin password, generated on the ansible controller and kept out of git (.gitignore: .secrets/)
+argocd_admin_password_file: "{{ playbook_dir }}/../../.secrets/argocd-admin-password"
+argocd_admin_password: "{{ lookup('ansible.builtin.password', argocd_admin_password_file ~ ' length=32 chars=ascii_letters,digits') }}"
+
 # @vars for the gitops repository
 kube_server: https://kubernetes.default.svc
 git_repo_url: https://github.com/chxmxii/kubegoros.git

@@ -1,54 +1,52 @@
 ---
-- name: Ensure the hostname is changed on all node.
-  hostname:
+- name: Ensure the hostname is set
+  ansible.builtin.hostname:
     name: "{{ node_hostname }}"
 
-- name: Ensure /etc/hosts is updated.
-  template:
+- name: Ensure /etc/hosts is updated
+  ansible.builtin.template:
     src: hosts.j2
     dest: /etc/hosts
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
-- name: Ensure zram-generator-defaults is absent.
-  package:
-    name: zram-generator-defaults
-    state: absent
+- name: Gather service facts
+  ansible.builtin.service_facts:
 
-- name: Ensure Firewalld is disabled
-  systemd:
+- name: Ensure firewalld is disabled
+  ansible.builtin.systemd_service:
     name: firewalld
     state: stopped
-    enabled: no
-  when: firewall_isdisabled
+    enabled: false
+  when:
+    - firewall_isdisabled | bool
+    - "'firewalld.service' in ansible_facts.services"
 
-- name: Ensure SELinux is in permissive mode
-  selinux:
+- name: Ensure the SELinux state is applied
+  ansible.posix.selinux:
     policy: targeted
-    state: permissive
+    state: "{{ selinux_state }}"
+  register: selinux_result
 
-- name: Ensure SELinux is disabled
-  selinux:
-    state: disabled
-  when: selinux_isdisabled
+- name: Warn when SELinux needs a reboot
+  ansible.builtin.debug:
+    msg: "SELinux state change on {{ inventory_hostname }} requires a reboot to take full effect."
+  when: selinux_result.reboot_required | default(false)
 
-- name: Ensure kernel module is loaded
+- name: Ensure kernel modules are loaded and persisted
   community.general.modprobe:
     name: "{{ item }}"
     state: present
-    persistent: present 
-  loop: ['overlay','br_netfilter','ceph','ip_vs','ip_vs_rr', 'rbd'] 
+    persistent: present
+  loop: "{{ kernel_modules }}"
 
-# See: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#letting-iptables-see-bridged-traffic
-- name: Ensure iptables can see bridged traffic
-  sysctl:
-    name: "{{ item }}"
-    value: '1'
+- name: Ensure kernel parameters are set
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
     sysctl_file: /etc/sysctl.d/99-kubernetes.conf
-    sysctl_set: yes
+    sysctl_set: true
     state: present
-    reload: yes
-  loop: ['net.ipv4.ip_forward','net.bridge.bridge-nf-call-iptables' ,'net.bridge.bridge-nf-call-ip6tables']  
-  notify: 
-    - Reboot Required
+    reload: true
+  loop: "{{ kernel_sysctls | dict2items }}"

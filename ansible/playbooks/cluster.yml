@@ -1,32 +1,46 @@
 ---
-- name: Configure HAProxy Load Balancer with Keepalived
-  hosts: haproxylb, kube_controlplanes
+- name: Bootstrap
+  ansible.builtin.import_playbook: bootstrap.yml
+
+- name: Configure HAProxy load balancer with keepalived
+  hosts: haproxylb:kube_controlplanes
   become: true
   tags: haproxy
   vars_files:
     - vars/main.yml
-  # vars:
-  #   vip_address: 10.254.100.99
   tasks:
-    - name: Install and configure HAProxy and Keepalived
-      include_tasks: tasks/01-haproxy.yml
+    - name: Install and configure HAProxy and keepalived
+      ansible.builtin.include_tasks: tasks/01-haproxy.yml
       when: inventory_hostname in groups['haproxylb']
+  handlers:
+    - name: Restart haproxy
+      ansible.builtin.systemd_service:
+        name: haproxy
+        state: restarted
 
+    - name: Restart keepalived
+      ansible.builtin.systemd_service:
+        name: keepalived
+        state: restarted
 
-- name: Initialize Kubernetes Cluster
+    - name: Restart kame
+      ansible.builtin.systemd_service:
+        name: kame
+        state: restarted
+        daemon_reload: true
+
+- name: Initialize Kubernetes cluster
   hosts: kube_cluster
   tags: cluster
   become: true
-  collections:
-    - ansible.builtin
-    - ansible.posix
-    - community.general
-    - kubernetes.core
   vars_files:
     - vars/main.yml
+  pre_tasks:
+    - name: Open the cluster ports in firewalld
+      ansible.builtin.include_tasks: tasks/00-allow_firewall.yml
+      when: not (firewall_isdisabled | default(true) | bool)
   roles:
-    - role: ../roles/pre-setup
-    - role: ../roles/containerd
-    - role: ../roles/kubeadm
-    - role: ../roles/gitops
-...
+    - role: pre-setup
+    - role: containerd
+    - role: kubeadm
+    - role: gitops

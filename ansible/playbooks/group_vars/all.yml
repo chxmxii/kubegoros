@@ -1,0 +1,7 @@
+---
+# ansible-core >= 2.17 needs Python >= 3.8 on the targets. EL8 ships 3.6 as platform-python,
+# so bootstrap.yml installs python3.11 (available in AppStream on EL8 and EL9) and every play uses it.
+ansible_python_interpreter: /usr/bin/python3.11
+
+# Host every cluster-wide kubectl/kubeadm action is delegated to (the kubeadm init node).
+kube_admin_node: "{{ groups['kube_controlplanes'][0] }}"
