@@ -1,0 +1,116 @@
+---
+# Applies the control plane hardening to an EXISTING cluster without changing its version.
+# Called serially per control plane by playbooks/harden-controlplane.yml.
+- name: Read the live ClusterConfiguration
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubelet_config_root_dir }}/admin.conf -n kube-system
+    get configmap kubeadm-config -o jsonpath={.data.ClusterConfiguration}
+  register: kube_live_cluster_conf_raw
+  changed_when: false
+  delegate_to: "{{ kube_admin_node }}"
+  run_once: true
+
+- name: Parse the live ClusterConfiguration
+  ansible.builtin.set_fact:
+    kube_live_cluster_conf: "{{ kube_live_cluster_conf_raw.stdout | from_yaml }}"
+
+- name: Ensure the cluster is recent enough for the hardening settings
+  ansible.builtin.assert:
+    that:
+      - kube_live_cluster_conf.apiVersion == 'kubeadm.k8s.io/v1beta4'
+      - (kube_live_cluster_conf.kubernetesVersion | regex_replace('^v', '')).split('.')[1] | int >= 34
+    fail_msg: >-
+      The cluster runs {{ kube_live_cluster_conf.kubernetesVersion }} ({{ kube_live_cluster_conf.apiVersion }}).
+      Structured authentication v1 and anonymous endpoint restrictions need Kubernetes >= 1.34.
+      Upgrade first (docs/upgrade.md), then run this playbook.
+    quiet: true
+
+- name: Merge the hardening flags into the live configuration
+  vars:
+    live_api: "{{ kube_live_cluster_conf.apiServer | default({}) }}"
+    live_cm: "{{ kube_live_cluster_conf.controllerManager | default({}) }}"
+    live_sched: "{{ kube_live_cluster_conf.scheduler | default({}) }}"
+    api_volume_names: "{{ kube_apiserver_extra_volumes | map(attribute='name') | list }}"
+  ansible.builtin.set_fact:
+    kube_hardened_cluster_conf: >-
+      {{ kube_live_cluster_conf | combine({
+           'apiServer': {
+             'extraArgs': (live_api.extraArgs | default([]) | items2dict(key_name='name', value_name='value'))
+                          | combine(kube_apiserver_extra_args | items2dict(key_name='name', value_name='value'))
+                          | dict2items(key_name='name', value_name='value'),
+             'extraVolumes': (live_api.extraVolumes | default([]) | rejectattr('name', 'in', api_volume_names) | list)
+                             + kube_apiserver_extra_volumes
+           },
+           'controllerManager': {
+             'extraArgs': (live_cm.extraArgs | default([]) | items2dict(key_name='name', value_name='value'))
+                          | combine(kube_controller_manager_extra_args | items2dict(key_name='name', value_name='value'))
+                          | dict2items(key_name='name', value_name='value')
+           },
+           'scheduler': {
+             'extraArgs': (live_sched.extraArgs | default([]) | items2dict(key_name='name', value_name='value'))
+                          | combine(kube_scheduler_extra_args | items2dict(key_name='name', value_name='value'))
+                          | dict2items(key_name='name', value_name='value')
+           }
+         }, recursive=true) }}
+
+- name: Write control plane security configuration
+  ansible.builtin.include_tasks: 05-controlplane_security.yml
+
+- name: Write the hardening kubeadm configuration
+  ansible.builtin.copy:
+    dest: "{{ kubelet_config_root_dir }}/kubeadm-harden.yml"
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      ---
+      apiVersion: kubeadm.k8s.io/v1beta4
+      kind: InitConfiguration
+      nodeRegistration:
+        name: {{ kube_cluster_node_name }}
+      localAPIEndpoint:
+        advertiseAddress: {{ kube_apiserver_advertise_address | default(ansible_default_ipv4['address'], true) }}
+        bindPort: 6443
+      ---
+      {{ kube_hardened_cluster_conf | to_nice_yaml(indent=2) }}
+
+- name: Checksum the kube-apiserver manifest before
+  ansible.builtin.stat:
+    path: "{{ kubelet_config_root_dir }}/manifests/kube-apiserver.yaml"
+  register: kube_apiserver_manifest_before
+
+- name: Regenerate the control plane static pod manifests
+  ansible.builtin.command: kubeadm init phase control-plane all --config {{ kubelet_config_root_dir }}/kubeadm-harden.yml
+  changed_when: false
+
+- name: Checksum the kube-apiserver manifest after
+  ansible.builtin.stat:
+    path: "{{ kubelet_config_root_dir }}/manifests/kube-apiserver.yaml"
+  register: kube_apiserver_manifest_after
+  changed_when: kube_apiserver_manifest_before.stat.checksum != kube_apiserver_manifest_after.stat.checksum
+
+- name: Store the hardened ClusterConfiguration in the cluster
+  ansible.builtin.command: kubeadm init phase upload-config kubeadm --config {{ kubelet_config_root_dir }}/kubeadm-harden.yml
+  changed_when: true
+  when: inventory_hostname == kube_admin_node
+
+- name: Wait for the restarted kube-apiserver to run with the new flags
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubelet_config_root_dir }}/admin.conf -n kube-system
+    get pod kube-apiserver-{{ kube_cluster_node_name }} -o jsonpath={.spec.containers[0].command}
+  register: kube_apiserver_command
+  changed_when: false
+  retries: 30
+  delay: 10
+  until: "'encryption-provider-config' in kube_apiserver_command.stdout"
+
+- name: Wait for kube-apiserver on this node to be ready
+  ansible.builtin.command: >
+    kubectl --kubeconfig {{ kubelet_config_root_dir }}/admin.conf
+    --server https://{{ kube_apiserver_advertise_address | default(ansible_default_ipv4['address'], true) }}:6443
+    get --raw /readyz
+  register: kube_apiserver_ready
+  changed_when: false
+  retries: 30
+  delay: 10
+  until: kube_apiserver_ready.stdout == 'ok'

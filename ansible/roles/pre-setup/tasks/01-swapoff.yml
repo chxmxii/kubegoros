@@ -1,21 +1,26 @@
 ---
-- name: Check if the /etc/fstab file exists.
-  stat:
-    path: "/etc/fstab"
-  register: fstab_file
-
-- name: Ensure the swap is removed from /etc/fstab
-  mount:
-    name: swap 
+- name: Ensure swap entries are removed from /etc/fstab
+  ansible.posix.mount:
+    name: swap
     fstype: swap
     state: absent
-  when: fstab_file.stat.exists 
 
-- name: Ensure the swap.target service is masked
-  systemd:
+- name: Check for active swap
+  ansible.builtin.command: swapon --show --noheadings
+  register: swap_active
+  changed_when: false
+
+- name: Ensure swap is turned off
+  ansible.builtin.command: swapoff -a
+  when: swap_active.stdout | length > 0
+  changed_when: true
+
+- name: Ensure the zram swap generator is absent
+  ansible.builtin.dnf:
+    name: zram-generator-defaults
+    state: absent
+
+- name: Ensure the swap.target unit is masked
+  ansible.builtin.systemd_service:
     name: swap.target
-    masked: yes
-  when: fstab_file.stat.exists
-
-- name: Ensure swap is disable
-  command: which swapoff -a
+    masked: true

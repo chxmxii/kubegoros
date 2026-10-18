@@ -1,0 +1,36 @@
+headlamp:
+  # Users sign in with Keycloak and act with their OWN identity (the API server
+  # trusts the kubegoros realm, see ansible/roles/kubeadm). Headlamp's service
+  # account gets no cluster permissions.
+  clusterRoleBinding:
+    create: false
+
+  config:
+    baseURL: ""
+    oidc:
+      secret:
+        create: false
+      externalSecret:
+        enabled: true
+        name: headlamp-oidc
+        hasScopes: true
+
+  podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    privileged: false
+    runAsUser: 100
+    runAsGroup: 101
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

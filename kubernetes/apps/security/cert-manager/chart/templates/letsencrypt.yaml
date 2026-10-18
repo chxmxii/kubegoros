@@ -13,5 +13,9 @@ spec:
       name: letsencrypt-issuer
     solvers:
     - http01:
-        ingress:
-          ingressClassName: nginx
+        gatewayHTTPRoute:
+          parentRefs:
+            - name: edge
+              namespace: envoy-gateway-system
+              kind: Gateway
+              sectionName: http

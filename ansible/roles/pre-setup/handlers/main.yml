@@ -1,6 +1,6 @@
 ---
 # handlers file for pre-setup
-- name: Reboot Required
-  reboot:
-    msg: Rebooting hosts...
-    reboot_timeout: 3600
+- name: Restart multipathd
+  ansible.builtin.systemd_service:
+    name: multipathd
+    state: restarted

@@ -1,0 +1,29 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: keycloak
+  namespace: keycloak
+spec:
+  parentRefs:
+    - name: edge
+      namespace: envoy-gateway-system
+      sectionName: https-keycloak
+  hostnames:
+    - keycloak.lab.chxmxii.xyz
+  rules:
+    - backendRefs:
+        - name: keycloak-service
+          port: 8080
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: max-age=31536000; includeSubDomains
+              - name: X-Content-Type-Options
+                value: nosniff
+              - name: Referrer-Policy
+                value: strict-origin-when-cross-origin
+            remove:
+              - Server
+              - X-Powered-By

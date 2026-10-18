@@ -1,0 +1,12 @@
+---
+profile: production
+exclude_paths:
+  - .github/
+  - kubernetes/
+  - site/
+  - docs/
+  - proxmox/
+skip_list:
+  # The roles share a public kube_* variable interface (host_vars, upgrade/harden playbooks,
+  # docs); prefixing every variable with the role name would break it.
+  - var-naming[no-role-prefix]

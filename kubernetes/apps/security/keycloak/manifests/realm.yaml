@@ -1,0 +1,320 @@
+# The kubegoros realm. NOTE: the operator imports a realm only when it does not exist yet;
+# later edits here are not applied to a live realm (change it in the admin console, or
+# delete the realm and let it be re-imported).
+# Users are not created here: add yourself in the console and join k8s-admins.
+apiVersion: k8s.keycloak.org/v2beta1
+kind: KeycloakRealmImport
+metadata:
+  name: kubegoros
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-wave: '3'
+spec:
+  keycloakCRName: keycloak
+  placeholders:
+    ARGOCD_CLIENT_SECRET:
+      secret:
+        name: keycloak-clients
+        key: argocd
+    GRAFANA_CLIENT_SECRET:
+      secret:
+        name: keycloak-clients
+        key: grafana
+    HEADLAMP_CLIENT_SECRET:
+      secret:
+        name: keycloak-clients
+        key: headlamp
+    EDGE_PROXY_CLIENT_SECRET:
+      secret:
+        name: keycloak-clients
+        key: edge-proxy
+  realm:
+    realm: kubegoros
+    displayName: kubegoros
+    enabled: true
+    sslRequired: external
+    registrationAllowed: false
+    resetPasswordAllowed: true
+    rememberMe: false
+    verifyEmail: false
+    loginWithEmailAllowed: true
+    duplicateEmailsAllowed: false
+    bruteForceProtected: true
+    permanentLockout: false
+    failureFactor: 5
+    waitIncrementSeconds: 60
+    maxFailureWaitSeconds: 900
+    maxDeltaTimeSeconds: 43200
+    passwordPolicy: length(14) and notUsername and notEmail and passwordHistory(5)
+    otpPolicyType: totp
+    otpPolicyAlgorithm: HmacSHA1
+    otpPolicyDigits: 6
+    otpPolicyPeriod: 30
+    accessTokenLifespan: 300
+    ssoSessionIdleTimeout: 1800
+    ssoSessionMaxLifespan: 36000
+    requiredActions:
+    - alias: CONFIGURE_TOTP
+      name: Configure OTP
+      providerId: CONFIGURE_TOTP
+      enabled: true
+      defaultAction: true
+      priority: 10
+    - alias: UPDATE_PASSWORD
+      name: Update Password
+      providerId: UPDATE_PASSWORD
+      enabled: true
+      defaultAction: false
+      priority: 20
+    groups:
+    - name: k8s-admins
+    - name: k8s-viewers
+    clientScopes:
+    - name: basic
+      protocol: openid-connect
+      attributes:
+        include.in.token.scope: 'false'
+        display.on.consent.screen: 'false'
+      protocolMappers:
+      - name: sub
+        protocol: openid-connect
+        protocolMapper: oidc-sub-mapper
+        config:
+          access.token.claim: 'true'
+          introspection.token.claim: 'true'
+      - name: auth_time
+        protocol: openid-connect
+        protocolMapper: oidc-usersessionmodel-note-mapper
+        config:
+          user.session.note: AUTH_TIME
+          claim.name: auth_time
+          jsonType.label: long
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          introspection.token.claim: 'true'
+    - name: profile
+      protocol: openid-connect
+      attributes:
+        include.in.token.scope: 'true'
+        display.on.consent.screen: 'true'
+      protocolMappers:
+      - name: username
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-attribute-mapper
+        config:
+          user.attribute: username
+          claim.name: preferred_username
+          jsonType.label: String
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+      - name: full name
+        protocol: openid-connect
+        protocolMapper: oidc-full-name-mapper
+        config:
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+      - name: given name
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-attribute-mapper
+        config:
+          user.attribute: firstName
+          claim.name: given_name
+          jsonType.label: String
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+      - name: family name
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-attribute-mapper
+        config:
+          user.attribute: lastName
+          claim.name: family_name
+          jsonType.label: String
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+    - name: email
+      protocol: openid-connect
+      attributes:
+        include.in.token.scope: 'true'
+        display.on.consent.screen: 'true'
+      protocolMappers:
+      - name: email
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-attribute-mapper
+        config:
+          user.attribute: email
+          claim.name: email
+          jsonType.label: String
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+      - name: email verified
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-property-mapper
+        config:
+          user.attribute: emailVerified
+          claim.name: email_verified
+          jsonType.label: boolean
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+    - name: groups
+      protocol: openid-connect
+      attributes:
+        include.in.token.scope: 'true'
+        display.on.consent.screen: 'false'
+      protocolMappers:
+      - name: groups
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        config:
+          claim.name: groups
+          full.path: 'false'
+          id.token.claim: 'true'
+          access.token.claim: 'true'
+          userinfo.token.claim: 'true'
+          introspection.token.claim: 'true'
+    clients:
+    - clientId: argocd
+      name: Argo CD
+      enabled: true
+      protocol: openid-connect
+      publicClient: false
+      secret: ${ARGOCD_CLIENT_SECRET}
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: false
+      implicitFlowEnabled: false
+      serviceAccountsEnabled: false
+      redirectUris:
+      - https://argocd.lab.chxmxii.xyz/auth/callback
+      - https://argocd.lab.chxmxii.xyz/pkce/verify
+      webOrigins:
+      - +
+      attributes:
+        pkce.code.challenge.method: S256
+        post.logout.redirect.uris: +
+      defaultClientScopes:
+      - basic
+      - profile
+      - email
+      - groups
+    - clientId: argocd-cli
+      name: Argo CD CLI
+      enabled: true
+      protocol: openid-connect
+      publicClient: true
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: false
+      implicitFlowEnabled: false
+      redirectUris:
+      - http://localhost:8085/auth/callback
+      webOrigins: []
+      attributes:
+        pkce.code.challenge.method: S256
+      defaultClientScopes:
+      - basic
+      - profile
+      - email
+      - groups
+    - clientId: grafana
+      name: Grafana
+      enabled: true
+      protocol: openid-connect
+      publicClient: false
+      secret: ${GRAFANA_CLIENT_SECRET}
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: false
+      implicitFlowEnabled: false
+      serviceAccountsEnabled: false
+      redirectUris:
+      - https://grafana.lab.chxmxii.xyz/login/generic_oauth
+      webOrigins:
+      - +
+      attributes:
+        pkce.code.challenge.method: S256
+        post.logout.redirect.uris: +
+      defaultClientScopes:
+      - basic
+      - profile
+      - email
+      - groups
+    - clientId: headlamp
+      name: Headlamp
+      enabled: true
+      protocol: openid-connect
+      publicClient: false
+      secret: ${HEADLAMP_CLIENT_SECRET}
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: false
+      implicitFlowEnabled: false
+      serviceAccountsEnabled: false
+      redirectUris:
+      - https://headlamp.lab.chxmxii.xyz/oidc-callback
+      webOrigins:
+      - +
+      attributes:
+        pkce.code.challenge.method: S256
+        post.logout.redirect.uris: +
+      defaultClientScopes:
+      - basic
+      - profile
+      - email
+      - groups
+    - clientId: edge-proxy
+      name: Gateway SSO (Prometheus, Alertmanager, Longhorn, Hubble)
+      enabled: true
+      protocol: openid-connect
+      publicClient: false
+      secret: ${EDGE_PROXY_CLIENT_SECRET}
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: false
+      implicitFlowEnabled: false
+      serviceAccountsEnabled: false
+      redirectUris:
+      - https://prometheus.lab.chxmxii.xyz/oauth2/callback
+      - https://alerts.lab.chxmxii.xyz/oauth2/callback
+      - https://longhorn.lab.chxmxii.xyz/oauth2/callback
+      - https://hubble.lab.chxmxii.xyz/oauth2/callback
+      webOrigins:
+      - +
+      attributes:
+        pkce.code.challenge.method: S256
+        post.logout.redirect.uris: +
+      defaultClientScopes:
+      - basic
+      - profile
+      - email
+      - groups
+    - clientId: kubernetes
+      name: kubectl (kubelogin)
+      enabled: true
+      protocol: openid-connect
+      publicClient: true
+      standardFlowEnabled: true
+      directAccessGrantsEnabled: false
+      implicitFlowEnabled: false
+      redirectUris:
+      - http://localhost:8000
+      - http://localhost:18000
+      webOrigins: []
+      attributes:
+        pkce.code.challenge.method: S256
+      defaultClientScopes:
+      - basic
+      - profile
+      - email
+      - groups
+    defaultDefaultClientScopes:
+    - basic
+    - profile
+    - email
+    - groups

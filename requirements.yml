@@ -1,6 +1,9 @@
 ---
-#collections required to run the playbooks.
+# collections required to run the playbooks
 collections:
   - name: ansible.posix
+    version: ">=2.0.0,<3.0.0"
   - name: community.general
+    version: ">=10.0.0,<14.0.0"
   - name: kubernetes.core
+    version: ">=6.0.0,<7.0.0"

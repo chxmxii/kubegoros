@@ -1,19 +1,19 @@
 ---
 # tasks file for gitops
-- name: Configure and Deploy ArgoCD.
-  block: 
+- name: Configure and deploy ArgoCD
+  when: inventory_hostname == kube_admin_node
+  block:
     - name: Install Helm
-      include_tasks: 00-install_helm.yml
+      ansible.builtin.include_tasks: 00-install_helm.yml
 
     - name: Install Kustomize
-      include_tasks: 01-install_kustomize.yml
+      ansible.builtin.include_tasks: 01-install_kustomize.yml
 
     - name: Install ArgoCD
-      include_tasks: 02-install_argocd.yml
+      ansible.builtin.include_tasks: 02-install_argocd.yml
 
     - name: Configure ArgoCD
-      include_tasks: 03-configure_argocd.yml
+      ansible.builtin.include_tasks: 03-configure_argocd.yml
 
     - name: Bootstrap ArgoCD
-      include_tasks: 04-bootstrap_argocd.yml
-  when: kube_cluster_node_type == "master" 
+      ansible.builtin.include_tasks: 04-bootstrap_argocd.yml

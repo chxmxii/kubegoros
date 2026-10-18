@@ -1,0 +1,23 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: argocd-oidc
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: vault
+  target:
+    name: argocd-oidc
+    template:
+      metadata:
+        labels:
+          app.kubernetes.io/part-of: argocd
+  data:
+    - secretKey: client-secret
+      remoteRef:
+        key: keycloak-clients
+        property: argocd

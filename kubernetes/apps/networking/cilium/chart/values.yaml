@@ -61,14 +61,4 @@ cilium:
           enabled: true
     ui:
       enabled: true
-      ingress:
-        enabled: true
-        className: nginx
-        annotations:
-          cert-manager.io/cluster-issuer: letsencrypt
-        hosts:
-          - hubble.k8s.coralio.co
-        tls:
-          - secretName: hubble-tls
-            hosts:
-              - hubble.k8s.coralio.co
+      # Exposed through the edge Gateway behind Keycloak SSO (networking/edge)

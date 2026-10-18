@@ -1,64 +1,54 @@
 ---
 # tasks file for containerd
-- include_tasks: setup-os.yml # I will work on this later for battlerocketOS
+- name: Ensure the Docker CE repository is configured
+  ansible.builtin.include_tasks: setup-os.yml
 
-- name: Ensure containerd is installed.
-  package:
-    name: "{{ containerd_package_name }}" 
+- name: Ensure containerd is installed
+  ansible.builtin.dnf:
+    name: "{{ containerd_package_name }}"
     state: "{{ containerd_package_state }}"
+  notify: Restart containerd
 
-- name: Ensure containerd is started and enabled at boot.
-  service:
+- name: Ensure containerd config directory exists
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Get defaults from containerd
+  ansible.builtin.command: containerd config default
+  changed_when: false
+  register: containerd_config_default
+  when: containerd_config_default_write | bool
+
+# Matches both the containerd 1.x (io.containerd.grpc.v1.cri) and 2.x (io.containerd.cri.v1.runtime) layouts
+- name: Ensure containerd config.toml is written with the systemd cgroup driver
+  ansible.builtin.copy:
+    dest: /etc/containerd/config.toml
+    content: >-
+      {{ containerd_config_default.stdout
+         | regex_replace('(?m)^(\s*)SystemdCgroup = false$',
+                         '\1SystemdCgroup = ' ~ (containerd_config_cgroup_driver_systemd | bool | string | lower)) }}
+    owner: root
+    group: root
+    mode: "0644"
+  when: containerd_config_default_write | bool
+  notify: Restart containerd
+
+- name: Verify the systemd cgroup driver is set
+  ansible.builtin.command: grep -q 'SystemdCgroup = true' /etc/containerd/config.toml
+  changed_when: false
+  when:
+    - containerd_config_default_write | bool
+    - containerd_config_cgroup_driver_systemd | bool
+
+- name: Ensure containerd is started and enabled at boot
+  ansible.builtin.systemd_service:
     name: containerd
     state: "{{ containerd_service_state }}"
     enabled: "{{ containerd_service_enabled }}"
 
-- name: Ensure containerd config directory exists.
-  file:
-    path: /etc/containerd
-    state: directory
-  register: containerd_dir
-
-- name: Get defaults from containerd.
-  command: containerd config default
-  changed_when: false
-  register: containerd_config_default
-  when: containerd_config_default_write
-
-- name: Prepare containerd/config.toml from default config
-  copy:
-    dest: /tmp/containerd_config.toml
-    content: "{{ containerd_config_default.stdout }}"
-  when: containerd_config_default_write
-  changed_when: false
-
-# Matches both the containerd 1.x (io.containerd.grpc.v1.cri) and 2.x (io.containerd.cri.v1.runtime) layouts
-- name: Set Cgroup driver to systemd
-  replace:
-    path: /tmp/containerd_config.toml
-    regexp: '^(\s*)SystemdCgroup = false$'
-    replace: '\1SystemdCgroup = true'
-  when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
-  changed_when: false
-
-- name: Verify systemd cgroup driver is set
-  command: grep -q 'SystemdCgroup = true' /tmp/containerd_config.toml
-  changed_when: false
-  when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
-
-- name: Copy config.toml to /etc/containerd
-  copy:
-    remote_src: true
-    src: /tmp/containerd_config.toml
-    dest: /etc/containerd/config.toml
-  notify: restart containerd
-  when: containerd_config_default_write
-
-- name: Cleanup temporary file
-  file:
-    path: /tmp/containerd_config.toml
-    state: absent
-  changed_when: false
-
-- name: Ensure containerd is restarted immediately if necessary.
-  meta: flush_handlers
+- name: Ensure containerd is restarted immediately if necessary
+  ansible.builtin.meta: flush_handlers

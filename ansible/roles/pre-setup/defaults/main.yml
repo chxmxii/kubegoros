@@ -1,43 +1,88 @@
 ---
 # defaults file for pre-setup
 
-#02-setup_repos.yml / 03-install_packages.yml
+# 00-res_assert.yml
+pre_setup_min_vcpus: 2
+pre_setup_min_memory_mb: 2048
+
+# 02-setup_repos.yml / 03-install_packages.yml
 # Minor version of the pkgs.k8s.io repo. The upgrade playbook overrides this per step.
 kubernetes_version: "1.37"
-
 kubernetes_yum_base_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/"
 kubernetes_yum_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/repodata/repomd.xml.key"
-kubernetes_yum_gpg_check: true
-kubernetes_yum_repo_gpg_check: true
+# Keep `dnf update` from bumping kube packages; installs/upgrades use disable_excludes
+kubernetes_yum_exclude: kubelet kubeadm kubectl cri-tools kubernetes-cni
 
+# Run a full `dnf update` on every play. Off by default: it is not idempotent and can pull
+# kernel/containerd updates in the middle of a cluster run.
+system_packages_upgrade: false
+
+python_pip_executable: pip3.11
 python_libs:
-  - jsonpatch
   - kubernetes
+  - jsonpatch
   - pyyaml
 
 required_packages:
   - jq
   - ca-certificates
-  - wget
-  - nmap-ncat
-  - iptables
   - curl
-  - net-tools
-  - iputils
+  - tar
+  - socat
+  - conntrack-tools
+  - iproute
+  - chrony
+  - openssl
+  - procps-ng
   - bind-utils
   - tcpdump
-  - htop
-  - libselinux-python3
+
+# Longhorn node requirements: https://longhorn.io/docs/latest/deploy/install/#installation-requirements
+longhorn_packages:
   - iscsi-initiator-utils
+  - nfs-utils
+  - cryptsetup
+  - device-mapper
+
 k8s_packages:
   - kubeadm
   - kubelet
   - kubectl
 
-procps_package: procps-ng
-
-#04-mod_settings.yml
-firewall_isdisabled: true
-selinux_isdisabled: true
-
+# 04-sys_net_settings.yml
 node_hostname: "{{ inventory_hostname }}"
+firewall_isdisabled: true
+# enforcing | permissive | disabled
+selinux_state: permissive
+
+kernel_modules:
+  - overlay
+  - br_netfilter
+  - iscsi_tcp
+  - dm_crypt
+
+# Includes the values kubelet checks when protectKernelDefaults is true.
+# rp_filter is intentionally left alone: Cilium manages it on its own interfaces.
+kernel_sysctls:
+  net.ipv4.ip_forward: 1
+  net.bridge.bridge-nf-call-iptables: 1
+  net.bridge.bridge-nf-call-ip6tables: 1
+  vm.overcommit_memory: 1
+  vm.panic_on_oom: 0
+  kernel.panic: 10
+  kernel.panic_on_oops: 1
+  kernel.keys.root_maxkeys: 1000000
+  kernel.keys.root_maxbytes: 25000000
+  fs.inotify.max_user_instances: 8192
+  fs.inotify.max_user_watches: 524288
+  kernel.kptr_restrict: 1
+  kernel.dmesg_restrict: 1
+  net.ipv4.tcp_syncookies: 1
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.default.accept_redirects: 0
+  net.ipv6.conf.all.accept_redirects: 0
+  net.ipv6.conf.default.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.conf.default.send_redirects: 0
+  net.ipv4.conf.all.accept_source_route: 0
+  net.ipv4.conf.default.accept_source_route: 0

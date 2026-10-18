@@ -1,0 +1,57 @@
+# {{ ansible_managed }}
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages:
+  - RequestReceived
+rules:
+  # Health, version and metrics probes
+  - level: None
+    nonResourceURLs:
+      - /healthz*
+      - /livez*
+      - /readyz*
+      - /version
+      - /metrics
+  # Events are high volume and already stored in the cluster
+  - level: None
+    resources:
+      - group: ""
+        resources: ["events"]
+      - group: events.k8s.io
+        resources: ["events"]
+  # Leader election and node heartbeats
+  - level: None
+    verbs: ["get", "update"]
+    resources:
+      - group: coordination.k8s.io
+        resources: ["leases"]
+  - level: None
+    userGroups: ["system:nodes"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+    resources:
+      - group: ""
+        resources: ["nodes", "nodes/status"]
+  # Read-only traffic from control plane components and kube-system controllers
+  - level: None
+    users:
+      - system:kube-controller-manager
+      - system:kube-scheduler
+      - system:apiserver
+    verbs: ["get", "list", "watch"]
+  - level: None
+    userGroups: ["system:serviceaccounts:kube-system"]
+    verbs: ["get", "list", "watch"]
+  # Never log payloads of secrets or tokens
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["secrets", "configmaps", "serviceaccounts/token"]
+      - group: authentication.k8s.io
+        resources: ["tokenreviews"]
+  # Full request/response for RBAC changes
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+    resources:
+      - group: rbac.authorization.k8s.io
+  # Everything else
+  - level: Metadata

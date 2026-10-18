@@ -1,32 +1,22 @@
 ---
-- name: Ensure epel package is enabled
-  yum:
+- name: Ensure the EPEL repository is enabled
+  ansible.builtin.dnf:
     name: epel-release
     state: present
 
-- name: Ensure Kubernetes repository is configured.
-  yum_repository:
+- name: Ensure the Kubernetes GPG key is imported
+  ansible.builtin.rpm_key:
+    key: "{{ kubernetes_yum_gpg_key }}"
+    state: present
+
+- name: Ensure the Kubernetes repository is configured
+  ansible.builtin.yum_repository:
     name: kubernetes
     description: Kubernetes Repository
     enabled: true
-    gpgcheck: "{{ kubernetes_yum_gpg_check }}"
-    repo_gpgcheck: "{{ kubernetes_yum_repo_gpg_check }}"
+    gpgcheck: true
+    repo_gpgcheck: true
     baseurl: "{{ kubernetes_yum_base_url }}"
     gpgkey: "{{ kubernetes_yum_gpg_key }}"
-    # Keep `yum update` from bumping kube packages; installs/upgrades use disable_excludes
-    exclude: kubelet kubeadm kubectl cri-tools kubernetes-cni
-
-- name: Add Kubernetes GPG keys.
-  rpm_key:
-    key: "{{ kubernetes_yum_gpg_key }}"
-    state: present
-  register: kubernetes_rpm_key
-
-- name: Update yum cache if Kubernetes GPG key changed.
-  command: "yum -q makecache -y --disablerepo='*' --enablerepo='kubernetes'"
-#  yum:
-#   name: "*"
-#   state: present
-#   disable_all_repos: yes
-#   enable_repo: "kubernetes"
-  when: kubernetes_rpm_key.changed
+    exclude: "{{ kubernetes_yum_exclude }}"
+    mode: "0644"

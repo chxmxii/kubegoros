@@ -1,14 +1,15 @@
 ---
+# {{ ansible_managed }}
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
-{{  kube_cfg_init_conf | to_nice_yaml}}
+{{ kube_cfg_init_conf | to_nice_yaml(indent=2) }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
-{{ kube_cfg_cluster_conf | to_nice_yaml }}
-{% if kube_cfg_kubelet_conf |length > 0 %}
+{{ kube_cfg_cluster_conf | to_nice_yaml(indent=2) }}
+{% if kube_cfg_kubelet_conf | length > 0 %}
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
-{{ kube_cfg_kubelet_conf | to_nice_yaml }}
+{{ kube_cfg_kubelet_conf | to_nice_yaml(indent=2) }}
 {% endif %}

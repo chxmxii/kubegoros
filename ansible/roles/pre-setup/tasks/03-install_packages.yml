@@ -1,34 +1,55 @@
 ---
-- name: Ensure the system packages are updated.
-  package:
-    name: '*'
-    state: latest
+- name: Ensure the system packages are updated
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest # noqa package-latest
+  when: system_packages_upgrade | bool
 
-- name: Ensure procps is installed.
-  package:
-    name: "{{ procps_package }}"
+- name: Ensure required packages are installed
+  ansible.builtin.dnf:
+    name: "{{ required_packages + longhorn_packages }}"
     state: present
-
-- name: Ensure required packages are installed.
-  package:
-    name: "{{ item }}"
-    state: present
-  loop: "{{ required_packages }}"
 
 - name: Ensure required python libs are installed
-  pip:
-    name: "{{ item }}"
-  loop: "{{ python_libs }}"
+  ansible.builtin.pip:
+    name: "{{ python_libs }}"
+    executable: "{{ python_pip_executable }}"
 
-- name: Ensure openssl is installed.
-  package:
-    name: openssl
+- name: Ensure kubernetes packages are installed
+  ansible.builtin.dnf:
+    name: "{{ k8s_packages }}"
     state: present
-
-- name: Ensure kubernetes packages are installed.
-  yum:
-    name: "{{ item }}"
-    state: present
-    update_cache: yes
+    update_cache: true
     disable_excludes: kubernetes
-  loop: "{{ k8s_packages }}"
+
+- name: Ensure chronyd is started and enabled
+  ansible.builtin.systemd_service:
+    name: chronyd
+    state: started
+    enabled: true
+
+- name: Ensure iscsid is started and enabled (Longhorn)
+  ansible.builtin.systemd_service:
+    name: iscsid
+    state: started
+    enabled: true
+
+- name: Check whether multipathd is installed
+  ansible.builtin.stat:
+    path: /usr/sbin/multipathd
+  register: multipathd_bin
+
+# multipathd grabs Longhorn's iSCSI block devices unless they are blacklisted
+# https://longhorn.io/kb/troubleshooting-volume-with-multipath/
+- name: Ensure Longhorn devices are blacklisted in multipath
+  ansible.builtin.blockinfile:
+    path: /etc/multipath.conf
+    create: true
+    mode: "0644"
+    marker: "# {mark} ANSIBLE MANAGED: longhorn"
+    block: |
+      blacklist {
+          devnode "^sd[a-z0-9]+"
+      }
+  when: multipathd_bin.stat.exists
+  notify: Restart multipathd
