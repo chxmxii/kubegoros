@@ -1,0 +1,25 @@
+# Volumes without explicit recurring-job labels belong to the "default" group:
+# hourly snapshots kept for a day, daily S3 backups kept for two weeks, weekly trim.
+# Volumes on longhorn-no-backups belong to "no-backup": snapshots + trim only.
+{{- $jobs := list
+  (dict "name" "snapshot-hourly" "task" "snapshot" "cron" "15 * * * *" "retain" 24 "groups" (list "default" "no-backup"))
+  (dict "name" "backup-daily" "task" "backup" "cron" "30 2 * * *" "retain" 14 "groups" (list "default"))
+  (dict "name" "trim-weekly" "task" "filesystem-trim" "cron" "0 4 * * 6" "retain" 0 "groups" (list "default" "no-backup"))
+}}
+{{- range $jobs }}
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: {{ .name }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  name: {{ .name }}
+  task: {{ .task }}
+  cron: {{ .cron | quote }}
+  retain: {{ .retain }}
+  concurrency: 1
+  groups:
+    {{- toYaml .groups | nindent 4 }}
+{{- end }}
