@@ -1,0 +1,35 @@
+# Redirect all plain HTTP to HTTPS (cert-manager's HTTP-01 solver routes are
+# hostname-specific, so they take precedence over this catch-all).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: https-redirect
+  namespace: envoy-gateway-system
+spec:
+  parentRefs:
+    - name: edge
+      sectionName: http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+  name: edge
+  namespace: envoy-gateway-system
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: edge
+  tls:
+    minVersion: "1.2"
+  timeout:
+    http:
+      # Slowloris protection
+      requestReceivedTimeout: 30s
+      idleTimeout: 5m

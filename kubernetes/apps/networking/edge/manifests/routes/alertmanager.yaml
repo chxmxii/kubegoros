@@ -1,0 +1,75 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: edge
+      namespace: envoy-gateway-system
+      sectionName: https-alertmanager
+  hostnames:
+    - alerts.lab.chxmxii.xyz
+  rules:
+    - backendRefs:
+        - name: kube-prometheus-stack-alertmanager
+          port: 9093
+      filters:
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: Strict-Transport-Security
+                value: max-age=31536000; includeSubDomains
+              - name: X-Content-Type-Options
+                value: nosniff
+              - name: Referrer-Policy
+                value: strict-origin-when-cross-origin
+            remove:
+              - Server
+              - X-Powered-By
+---
+# alertmanager has no OIDC support of its own: the gateway logs users in against Keycloak
+# and only lets members of the k8s-admins group through.
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: alertmanager-sso
+  namespace: monitoring
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: alertmanager
+  oidc:
+    provider:
+      issuer: https://keycloak.lab.chxmxii.xyz/realms/kubegoros
+    clientID: edge-proxy
+    clientSecret:
+      name: edge-oidc
+    scopes: [openid, profile, email, groups]
+    redirectURL: https://alerts.lab.chxmxii.xyz/oauth2/callback
+    logoutPath: /oauth2/logout
+    forwardIDToken:
+      header: X-Kubegoros-Id-Token
+  jwt:
+    providers:
+      - name: keycloak
+        issuer: https://keycloak.lab.chxmxii.xyz/realms/kubegoros
+        audiences: [edge-proxy]
+        remoteJWKS:
+          uri: https://keycloak.lab.chxmxii.xyz/realms/kubegoros/protocol/openid-connect/certs
+        extractFrom:
+          headers:
+            - name: X-Kubegoros-Id-Token
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: platform-admins
+        action: Allow
+        principal:
+          jwt:
+            provider: keycloak
+            claims:
+              - name: groups
+                valueType: StringArray
+                values: [k8s-admins]

@@ -1,0 +1,12 @@
+apiVersion: v2
+name: envoy-gateway
+description: envoy gateway controller (Gateway API implementation)
+type: application
+version: 0.1.0
+appVersion: "1.9.2"
+
+# Also installs the Gateway API CRDs (crds subchart)
+dependencies:
+  - name: gateway-helm
+    version: "v1.9.2"
+    repository: oci://docker.io/envoyproxy
