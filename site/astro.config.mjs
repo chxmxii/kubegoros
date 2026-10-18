@@ -9,7 +9,6 @@ export default defineConfig({
     starlight({
       title: 'kubegoros',
       description: 'A kubeadm homelab cluster run from git: Ansible for the nodes, ArgoCD for everything on top.',
-      logo: { src: './src/assets/mark.svg', replacesTitle: false },
       social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/chxmxii/kubegoros' }],
       editLink: { baseUrl: 'https://github.com/chxmxii/kubegoros/edit/main/site/' },
       lastUpdated: true,
