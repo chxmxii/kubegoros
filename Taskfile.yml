@@ -9,5 +9,5 @@ includes:
 tasks:
   help:
     silent: true
-    cmds: 
+    cmds:
       - sh hack/help.sh
