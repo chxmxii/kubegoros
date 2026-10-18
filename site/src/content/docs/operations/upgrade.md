@@ -1,4 +1,9 @@
-# Upgrading Kubernetes
+---
+title: Upgrade Kubernetes
+description: Move the cluster up one minor version at a time.
+sidebar:
+  order: 1
+---
 
 `ansible/playbooks/upgrade.yml` upgrades the cluster by **one minor version per run**,
 since kubeadm cannot skip minor versions. For each node, one at a time (the initial control plane first, then the other control planes, then the workers), it:
@@ -26,13 +31,14 @@ bootstrapped with was never pinned. So do the move in this order:
 | 2 | `VERSION=1.31` | kubeadm migrates its stored config to `v1beta4` |
 | 3 | `VERSION=1.32` | |
 | 4 | `VERSION=1.33` | |
-| 5 | **Calico → Cilium** | see [cilium-migration.md](cilium-migration.md) |
-| 6 | `VERSION=1.34` | Longhorn 1.13+ needs ≥ 1.34 |
-| 7 | `VERSION=1.35` | **cgroup v2 required**: the playbook asserts it, see below |
-| 8 | `VERSION=1.36` | **containerd 2.x required**: the playbook upgrades `containerd.io` |
-| 9 | `VERSION=1.37` | Cilium 1.20 is officially tested up to 1.36; check the Cilium compatibility matrix first |
+| 5 | Calico to Cilium | see [Calico to Cilium](/kubegoros/operations/cilium-migration/) |
+| 6 | `VERSION=1.34` | Longhorn 1.13+ needs 1.34 or later |
+| 7 | `task cluster:harden` | audit logging, encryption at rest, Keycloak OIDC, see [Hardening](/kubegoros/operations/hardening/) |
+| 8 | `VERSION=1.35` | cgroup v2 required, the playbook checks it (see below) |
+| 9 | `VERSION=1.36` | containerd 2.x required, the playbook upgrades `containerd.io` |
+| 10 | `VERSION=1.37` | Cilium 1.20 is officially tested up to 1.36; check the Cilium compatibility matrix first |
 
-After each step, check that `kubectl get nodes` and every ArgoCD application are Healthy before moving on.
+After each step, run `task cluster:verify` and check that `kubectl get nodes` and every ArgoCD application are Healthy before moving on.
 
 ### cgroup v2 (1.35+)
 

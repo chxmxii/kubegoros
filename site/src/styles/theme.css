@@ -1,0 +1,103 @@
+/* kubegoros docs theme: zinc neutrals, one teal accent, 6px radius everywhere. */
+:root {
+  --sl-font: 'Geist Sans', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --kg-radius: 6px;
+}
+
+/* Dark (Starlight default) */
+:root {
+  --sl-color-accent-low: #0b2a2a;
+  --sl-color-accent: #14a39a;
+  --sl-color-accent-high: #a7ede6;
+  --sl-color-white: #fafafa;
+  --sl-color-gray-1: #e4e4e7;
+  --sl-color-gray-2: #c4c4c9;
+  --sl-color-gray-3: #9b9ba3;
+  --sl-color-gray-4: #5f5f68;
+  --sl-color-gray-5: #3a3a41;
+  --sl-color-gray-6: #232327;
+  --sl-color-black: #121214;
+}
+
+/* Light */
+:root[data-theme='light'] {
+  --sl-color-accent-low: #d3f4f0;
+  --sl-color-accent: #0c7d76;
+  --sl-color-accent-high: #0a3f3c;
+  --sl-color-white: #18181b;
+  --sl-color-gray-1: #27272a;
+  --sl-color-gray-2: #3f3f46;
+  --sl-color-gray-3: #52525b;
+  --sl-color-gray-4: #8a8a93;
+  --sl-color-gray-5: #c9c9cf;
+  --sl-color-gray-6: #ececef;
+  --sl-color-gray-7: #f6f6f7;
+  --sl-color-black: #fcfcfc;
+}
+
+:root {
+  --sl-content-width: 46rem;
+  --sl-text-h1: 2.25rem;
+  --sl-line-height-headings: 1.15;
+}
+
+h1, h2, h3, h4 { letter-spacing: -0.02em; }
+.sl-markdown-content code:not(pre code) { border-radius: var(--kg-radius); }
+.expressive-code .frame, .expressive-code pre { border-radius: var(--kg-radius) !important; }
+.starlight-aside, .card, .sl-link-card { border-radius: var(--kg-radius); }
+.sl-markdown-content table { font-size: var(--sl-text-sm); }
+.sl-markdown-content td code { white-space: nowrap; }
+
+/* Landing page: the custom hero replaces Starlight's page title */
+body:has(.kg-hero) .content-panel:has(> .sl-container > h1#_top) { display: none; }
+body:has(.kg-hero) .content-panel { border-top: 0; }
+
+/* Landing page */
+.kg-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 3rem;
+  align-items: center;
+  padding-block: 1.5rem 2rem;
+}
+.kg-hero h1 {
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  margin: 0;
+  color: var(--sl-color-white);
+}
+.kg-hero p { font-size: 1.1rem; color: var(--sl-color-gray-2); max-width: 34ch; margin-top: 1rem; }
+.kg-hero .kg-actions { display: flex; gap: 0.75rem; margin-top: 1.75rem; flex-wrap: wrap; }
+.kg-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .6rem 1.1rem; border-radius: var(--kg-radius);
+  font-weight: 500; text-decoration: none; white-space: nowrap;
+  transition: transform .15s cubic-bezier(.16,1,.3,1), background-color .15s;
+}
+.kg-btn:active { transform: translateY(1px); }
+.kg-btn-primary { background: var(--sl-color-accent); color: var(--sl-color-black); }
+.kg-btn-primary:hover { background: var(--sl-color-accent-high); color: var(--sl-color-black); }
+:root[data-theme='light'] .kg-btn-primary { color: #fcfcfc; }
+:root[data-theme='light'] .kg-btn-primary:hover { background: var(--sl-color-accent-high); color: #fcfcfc; }
+.kg-btn-ghost { border: 1px solid var(--sl-color-gray-5); color: var(--sl-color-white); }
+.kg-btn-ghost:hover { border-color: var(--sl-color-accent); color: var(--sl-color-white); }
+
+.kg-layers { display: grid; grid-template-columns: 2fr 3fr; gap: 2.5rem; margin-top: 3rem; }
+.kg-layers dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: .9rem 1.5rem; align-items: baseline; }
+.kg-layers dt { font-family: var(--sl-font-mono); font-size: var(--sl-text-sm); color: var(--sl-color-accent-high); }
+:root[data-theme='light'] .kg-layers dt { color: var(--sl-color-accent); }
+.kg-layers dd { margin: 0; color: var(--sl-color-gray-2); }
+
+.kg-flow { margin-top: 3.5rem; padding: 1.75rem; border-radius: var(--kg-radius); background: var(--sl-color-gray-6); }
+.kg-flow ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; margin: 1rem 0 0; padding: 0; list-style: none; counter-reset: s; }
+.kg-flow li { counter-increment: s; }
+.kg-flow li strong { display: block; color: var(--sl-color-white); margin-bottom: .25rem; }
+.kg-flow li span { color: var(--sl-color-gray-2); font-size: var(--sl-text-sm); }
+
+@media (max-width: 50rem) {
+  .kg-hero, .kg-layers { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+  .kg-flow ol { grid-template-columns: 1fr; }
+}
