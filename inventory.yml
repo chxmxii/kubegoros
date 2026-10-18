@@ -14,13 +14,13 @@ all:
         controlplane01:
         controlplane02:
         controlplane03:
-      
+
     kube_workernodes:
       hosts:
         workernode01:
         workernode02:
         workernode03:
-    
+
     haproxylb:
       hosts:
         halb01:
