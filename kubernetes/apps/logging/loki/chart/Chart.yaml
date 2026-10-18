@@ -1,0 +1,12 @@
+apiVersion: v2
+name: loki
+description: loki chart
+type: application
+version: 0.1.0
+appVersion: "3.7.8"
+
+# The OSS Loki chart moved from grafana/helm-charts to grafana-community/helm-charts (March 2026).
+dependencies:
+  - name: loki
+    version: "18.17.1"
+    repository: https://grafana-community.github.io/helm-charts

@@ -28,6 +28,8 @@ All of these are deployed via OpenTofu on top of Proxmox Virtual Environment v7.
 | halb01           | CentOS 7 | LXC       |
 | halb02           | CentOS 7 | LXC       |
 
+Kubernetes **v1.37** (kubeadm, containerd 2.x, cgroup v2). See [docs/upgrade.md](docs/upgrade.md) to upgrade an existing cluster.
+
 ---
 ## Features
 
@@ -60,8 +62,7 @@ Follow these steps to install:
 ```md
 📁 kubegoros
 ├── 📁 kubernetes                # Kubernetes directory
-|   ├── 📁 adds-on               # Adds-on applications
-|   └── 📁 apps                  # kubernetes applications
+|   └── 📁 apps                  # ArgoCD applications (networking, security, storage, monitoring, logging)
 └── 📁 ansible                   # Ansible root directory.
 |   ├── 📁 playbooks             # Ansible playbooks.
 |   └── 📁 roles                 # Ansible roles.
@@ -69,9 +70,11 @@ Follow these steps to install:
 |       ├── 📁 containerd        # Installs and configure containerd.
 |       ├── 📁 kubeadm           # Install and configure kubernetes.
 |       └── 📁 gitops            # Install, Configure and Bootstrap argoCD.
+├── 📁 docs                      # Upgrade guide, Cilium migration, platform setup.
 ├── 📁 tests                     # Ansible tests.
 └── 📁 .taskfiles                # Taskfiles root directory.
-    ├── 📄 ansible.yml           # Tasks specific to cluster management with ansible
+    ├── 📄 cluster.yml           # Cluster init / reset / upgrade.
+    ├── 📄 nodes.yml             # Node connectivity, inventory and reboot.
     ├── 📄 kyverno.yml           # Tasks specific to enable or disable kyverno policies.
     └── 📄 env.yml               # Tasks related to environement setup.
 
@@ -100,9 +103,9 @@ Follow these steps to install:
         <td>Cloud native certificate management</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://rancher.com/docs/img/rancher/calico-logo.png"></td>
-        <td><a href="https://www.projectcalico.org">Calico</a></td>
-        <td>eBPF-based Networking, Observability and Security (CNI, LB, Network Policy, etc.)</td>
+        <td><img width="32" src="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo-solo.svg"></td>
+        <td><a href="https://cilium.io">Cilium</a></td>
+        <td>eBPF-based Networking, Observability and Security (CNI, kube-proxy replacement, Hubble)</td>
     </tr>
     <tr>
         <td><img width="32" src="https://luktom.net/wordpress/wp-content/uploads/2019/05/prometheus.png"></td>
@@ -130,16 +133,6 @@ Follow these steps to install:
         <td>Kubernetes Native Policy Management</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://creazilla-store.fra1.digitaloceanspaces.com/icons/3508845/istio-bluelogo-nobackground-unframed-icon-md.png"></td>
-        <td><a href="https://istio.io">Istio</a></td>
-        <td>Service mesh for connecting, securing, and managing microservices</td>
-    </tr>
-    <tr>
-        <td><img width="32" src="https://pbs.twimg.com/profile_images/1452865156359196674/Z6IT7Fbr.png"></td>
-        <td><a href="https://kubearmor.io">KubeArmor</a></td>
-        <td>Kubernetes Native Runtime Security</td>
-    </tr>
-    <tr>
         <td><img width="32" src="https://v0-2-1--metallb.netlify.app/images/logo.png"></td>
         <td><a href="https://metallb.org">MetalLB</a></td>
         <td>Bare metal load-balancer for Kubernetes</td>
@@ -155,9 +148,24 @@ Follow these steps to install:
         <td>Cloud native distributed block storage for Kubernetes</td>
     </tr>
     <tr>
-        <td><img width="32" src="https://www.definit.co.uk/images/logos/velero.png"></td>
-        <td><a href="https://velero.io">Velero</a></td>
-        <td>Backup and disaster recovery solution for Kubernetes clusters</td>
+        <td><img width="32" src="https://www.keycloak.org/resources/images/icon.svg"></td>
+        <td><a href="https://www.keycloak.org">Keycloak</a></td>
+        <td>Identity and access management (SSO / OIDC)</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://cloudnative-pg.io/images/hero_image.svg"></td>
+        <td><a href="https://cloudnative-pg.io">CloudNativePG</a></td>
+        <td>PostgreSQL operator (Keycloak database)</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://netbird.io/favicon.ico"></td>
+        <td><a href="https://netbird.io">NetBird</a></td>
+        <td>WireGuard-based tunnel into the cluster, no open ports</td>
+    </tr>
+    <tr>
+        <td><img width="32" src="https://external-secrets.io/latest/pictures/eso-round-logo.svg"></td>
+        <td><a href="https://external-secrets.io">External Secrets</a></td>
+        <td>Syncs secrets from Vault into the cluster</td>
     </tr>
 </table>
 
@@ -180,8 +188,7 @@ Once installed and configured, use taskfile to deploy and manage your Kubernetes
   task env:install     -> Install project dependencies
   task cluster:init    -> Provision the Kubernetes cluster
   task cluster:reset   -> Reset the Kubernetes cluster
-  task cluster:upgrade -> Upgrade the Kubernetes cluster
-  task cluster:backup  -> Create cluster Backup
+  task cluster:upgrade -> Upgrade one minor version (VERSION=1.xx)
   task nodes:check     -> Verify Cluster Nodes Connectivity
   task nodes:list      -> Display Ansible Inventory
   task nodes:reboot    -> Reboot Cluster nodes
@@ -193,6 +200,8 @@ Once installed and configured, use taskfile to deploy and manage your Kubernetes
 ## Roadmap
 
 + Add support for Talos.
++ Velero backups.
++ Keycloak SSO for ArgoCD and Grafana.
 + Cloudfalre integration.
 + Create smoke tests.
 ...

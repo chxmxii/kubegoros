@@ -36,11 +36,30 @@
     state: link
     mode: '0640'
 
-- name: Install and configure Calico CNI
+- name: Install Helm
+  include_role:
+    name: gitops
+    tasks_from: 00-install_helm.yml
+
+- name: Copy Cilium chart to the control plane
+  copy:
+    src: "{{ kube_cni_cilium_chart }}/"
+    dest: /tmp/cilium-chart/
+    mode: '0644'
+
+- name: Install Cilium CNI
   shell: |
-    kubectl apply -f {{ kube_cni_calico }}
-  register: calico_result
-  until: calico_result is not failed
-  changed_when: "'created' in calico_result.stdout"
-  retries: 12
-  delay: 5
+    helm dependency update /tmp/cilium-chart
+    helm upgrade --install cilium /tmp/cilium-chart \
+      --namespace kube-system \
+      {% for o in kube_cni_cilium_bootstrap_overrides %}--set {{ o }} {% endfor %}\
+      --wait --timeout 10m
+  environment:
+    KUBECONFIG: "{{ kubelet_config_root_dir }}/admin.conf"
+  register: cilium_result
+  changed_when: "'has been upgraded' in cilium_result.stdout or 'STATUS: deployed' in cilium_result.stdout"
+
+- name: Clean Cilium chart
+  file:
+    path: /tmp/cilium-chart
+    state: absent

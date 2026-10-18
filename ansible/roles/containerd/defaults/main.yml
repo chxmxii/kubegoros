@@ -1,7 +1,7 @@
 ---
 # defaults file for containerd
 
-# Packages options.
+# Packages options. Kubernetes >= 1.36 requires containerd 2.x (containerd.io >= 2.0).
 containerd_package_name: containerd.io
 containerd_package_state: present
 
@@ -13,7 +13,8 @@ containerd_service_enabled: true
 containerd_config_default_write: true
 
 # Set systemd as cgroup driver in config.toml / Only use with containerd_config_default_write: true
-containerd_config_cgroup_driver_systemd: false
+# Must match the kubelet cgroupDriver (systemd, see roles/kubeadm).
+containerd_config_cgroup_driver_systemd: true
 
 # Docker repo config for centos (will change later for battlerocketos)
 docker_yum_repo_url: https://download.docker.com/linux/{{ (ansible_distribution == "Fedora") | ternary("fedora","centos") }}/docker-ce.repo

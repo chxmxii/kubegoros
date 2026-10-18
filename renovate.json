@@ -1,61 +1,65 @@
 {
-    "enabled": true,
-    "gitAuthor": "renovate <chxmxii.ctf@gmail.com>",
-    "semanticCommits": "enabled",
-    "labels": ["renovatebot"],
-    "semanticCommitScope": "images",
-    "dependencyDashboard": true,
-    "dependencyDashboardTitle": "Renovate Dashboard",
-    "suppressNotifications": ["prIgnoreNotification"],
-    "rebaseWhen": "conflicted",
-    "argocd": {
-        "fileMatch": [
-            "kubernetes\/apps\/.*\\.app\\.yaml"
-        ]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabled": true,
+  "gitAuthor": "renovate <chxmxii.ctf@gmail.com>",
+  "semanticCommits": "enabled",
+  "labels": ["renovatebot"],
+  "semanticCommitScope": "images",
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Renovate Dashboard",
+  "suppressNotifications": ["prIgnoreNotification"],
+  "rebaseWhen": "conflicted",
+  "argocd": {
+    "managerFilePatterns": ["/kubernetes/apps/.*\\.app\\.yaml$/"]
+  },
+  "kustomize": {
+    "managerFilePatterns": ["/kubernetes/apps/.*/kustomization\\.yaml$/"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["kubernetes"],
+      "matchDatasources": ["kubernetes-api"],
+      "enabled": false
     },
-    "packageRules": [
-      {
-        "matchManagers": ["kubernetes"],
-        "matchDatasources": ["kubernetes-api"],
-        "enabled": false
-      },
-      {
-        "matchDatasources": ["docker"],
-        "matchUpdateTypes": ["major"],
-        "enabled": true
-      },
-      {
-        "matchDatasources": ["docker"],
-        "addLabels": ["docker/image"]
-      },
-      {
-        "matchUpdateTypes": [
-          "patch",
-          "pin",
-          "digest"
-        ],
-        "automerge": true
-      },
-      {
-        "matchUpdateTypes": ["major"],
-        "addLabels": [ "dep/major"]
-      },
-      {
-        "matchUpdateTypes": ["minor", "patch"],
-        "addLabels": [ "dep/minor"]
-      }
-    ],
-    "customManagers": [
-        {
-            "customType": "regex",
-            "description": ["Process custom dependencies"],
-            "fileMatch": [
-                "ansible\/.*\/.*\\.yaml$"
-            ],
-            "matchStrings": [
-                "(?m:# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( repository=(?<registryUrl>\\S+))?\\n.+?: \"?(?<currentValue>\\S+?)\"?$)"
-            ],
-            "datasourceTemplate": "{{#if datasource}}{{{datasource}}}{{else}}github-releases{{/if}}"
-        }
-    ]
+    {
+      "description": "Kubernetes and the CNI are upgraded through the ansible upgrade playbook, one minor at a time",
+      "matchPackageNames": ["kubernetes/kubernetes", "cilium"],
+      "matchUpdateTypes": ["major", "minor"],
+      "automerge": false,
+      "addLabels": ["dep/core"]
+    },
+    {
+      "description": "Stay on Helm 3 for the node-side CLI",
+      "matchPackageNames": ["helm/helm"],
+      "allowedVersions": "<4.0.0"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "addLabels": ["docker/image"]
+    },
+    {
+      "matchUpdateTypes": ["patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["dep/major"]
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "addLabels": ["dep/minor"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Versions in ansible defaults annotated with a `# renovate:` comment",
+      "managerFilePatterns": ["/ansible/.+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( extractVersion=(?<extractVersion>\\S+))?\\n[^:]+: \"?(?<currentValue>[^\"\\s]+)\"?"
+      ],
+      "extractVersionTemplate": "{{#if extractVersion}}{{{extractVersion}}}{{else}}^v?(?<version>.*)${{/if}}"
+    }
+  ]
 }

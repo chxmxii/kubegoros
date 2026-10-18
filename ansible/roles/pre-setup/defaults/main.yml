@@ -1,8 +1,9 @@
 ---
 # defaults file for pre-setup
 
-#03-install_packages.yml
-kubernetes_version: 1.29
+#02-setup_repos.yml / 03-install_packages.yml
+# Minor version of the pkgs.k8s.io repo. The upgrade playbook overrides this per step.
+kubernetes_version: "1.37"
 
 kubernetes_yum_base_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/"
 kubernetes_yum_gpg_key: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_version }}/rpm/repodata/repomd.xml.key"

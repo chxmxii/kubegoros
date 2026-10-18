@@ -24,11 +24,16 @@
         group: root
         mode: '0440'
     
+    # ArgoCD 3.x CRDs exceed the client-side apply annotation limit
     - name: Deploy ArgoCD
       kubernetes.core.k8s:
         namespace: "{{ argocd_namespace }}"
         state: present
         src: /tmp/argocd.yml
+        apply: true
+        server_side_apply:
+          field_manager: ansible
+          force_conflicts: true
   always:
     - name: Clean Installation
       file:

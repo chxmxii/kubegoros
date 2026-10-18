@@ -6,33 +6,25 @@ os_platform: linux
 helm_binary_path: /usr/bin/helm
 helm_path: /usr/bin
 helm_url: https://get.helm.sh/helm-v{{ helm_version }}-{{ os_platform }}-{{ system_arch }}.tar.gz
-#See https://github.com/helm/helm/releases
-helm_version: 3.14.3
+# renovate: datasource=github-releases depName=helm/helm
+helm_version: 3.22.1
 # @vars for Kustomize
 k7e_binary_path: /usr/bin
-k7e_version: 5.4.1
+# renovate: datasource=github-releases depName=kubernetes-sigs/kustomize extractVersion=^kustomize/v(?<version>.*)$
+k7e_version: 5.8.3
 k7e_core_download: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ k7e_version }}/kustomize_v{{ k7e_version }}_linux_{{ system_arch }}.tar.gz
-## @ars for Kustomize Plugins 
-ksops_download_url: https://github.com/viaduct-ai/kustomize-sops/releases/download/v{{ k7e_plugins.ksops.version }}/ksops_{{ k7e_plugins.ksops.version }}_{{ os_platform }}_{{ os_arch }}.tar.gz
-khelm_download_url: https://github.com/mgoltzsche/khelm/releases/download/v{{ k7e_plugins.khelm.version }}/khelm-linux-{{ system_arch }}
-k7e_plugins:
-    ksops:
-        enabled: true
-        version: 4.3.1
-    khelm:
-        enabled: true
-        version: 2.3.3
 # @vars for argocd
 argocd_namespace: argocd
-argocd_version: 2.10.6
+# renovate: datasource=github-releases depName=argoproj/argo-cd
+argocd_version: 3.5.5
 argocd_manifests: https://raw.githubusercontent.com/argoproj/argo-cd/v{{ argocd_version }}/manifests/install.yaml
 argocd_binary_path: /usr/bin
 argocd_cli_url: https://github.com/argoproj/argo-cd/releases/download/v{{ argocd_version }}/argocd-{{ os_platform }}-{{ system_arch }}
 argocd_new_password: argocdadmin0#
-# @vars for argocd gitlab repository
+# @vars for the gitops repository
 kube_server: https://kubernetes.default.svc
-git_repo: #change the values.
-    gitlab_url: REDACTED
-    gitlab_password: <REDACTED>
-    gitlab_username: REDACTED
-    repoistory_type: REDACTED 
+git_repo_url: https://github.com/chxmxii/kubegoros.git
+# Only needed for a private repository (sops-encrypt this file afterwards, see .sops.yaml):
+# git_repo:
+#   username: <user>
+#   password: <token>

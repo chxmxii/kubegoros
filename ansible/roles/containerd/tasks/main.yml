@@ -32,23 +32,19 @@
   when: containerd_config_default_write
   changed_when: false
 
+# Matches both the containerd 1.x (io.containerd.grpc.v1.cri) and 2.x (io.containerd.cri.v1.runtime) layouts
 - name: Set Cgroup driver to systemd
-  lineinfile:
-    insertafter: '.*\[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options\]$'
-    line: '          SystemdCgroup = true'
-    state: present
+  replace:
     path: /tmp/containerd_config.toml
+    regexp: '^(\s*)SystemdCgroup = false$'
+    replace: '\1SystemdCgroup = true'
   when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
   changed_when: false
 
-- name: Make sure  SystemdCgroup = false is not set
-  ansible.builtin.lineinfile:
-    path: /tmp/containerd_config.toml
-    state: absent
-    line: '            SystemdCgroup = false'
-  notify: restart containerd
-  when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
+- name: Verify systemd cgroup driver is set
+  command: grep -q 'SystemdCgroup = true' /tmp/containerd_config.toml
   changed_when: false
+  when: containerd_config_default_write and containerd_config_cgroup_driver_systemd
 
 - name: Copy config.toml to /etc/containerd
   copy:

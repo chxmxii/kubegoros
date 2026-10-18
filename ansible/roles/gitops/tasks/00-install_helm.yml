@@ -5,8 +5,7 @@
   register: check_helm
 
 - name: Get Helm version
-  shell: |
-    "{{ helm_binary_path }} version"
+  command: "{{ helm_binary_path }} version --short"
   changed_when: false
   failed_when: false
   register: existing_helm_version
@@ -25,7 +24,8 @@
       copy:
         remote_src: true
         src: "/tmp/{{ os_platform }}-{{ system_arch }}/helm"
-        dest: "{{ helm_path}}"
+        dest: "{{ helm_path }}"
+        mode: 0755
   when: >
     not check_helm.stat.exists
     or helm_version not in existing_helm_version.stdout
