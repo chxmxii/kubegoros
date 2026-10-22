@@ -2,7 +2,7 @@ module ctProvisioner
 
 go 1.26.6
 
-require github.com/pulumi/pulumi/sdk/v3 v3.270.0
+require github.com/pulumi/pulumi/sdk/v3 v3.272.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
